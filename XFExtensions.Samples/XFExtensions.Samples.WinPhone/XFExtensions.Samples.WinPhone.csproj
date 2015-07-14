@@ -159,6 +159,14 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\XFExtensions.Controls\XFExtensions.Controls.Abstractions\XFExtensions.Controls.Abstractions.csproj">
+      <Project>{14c534b6-1984-41a9-a384-d3a5508588e3}</Project>
+      <Name>XFExtensions.Controls.Abstractions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\XFExtensions.Controls\XFExtensions.Controls.WindowsPhone\XFExtensions.Controls.WindowsPhone.csproj">
+      <Project>{983b7eff-7e75-4a87-890a-744a0b4c5232}</Project>
+      <Name>XFExtensions.Controls.WindowsPhone</Name>
+    </ProjectReference>
     <ProjectReference Include="..\XFExtensions.Samples\XFExtensions.Samples.csproj">
       <Name>XFExtensions.Samples</Name>
     </ProjectReference>
@@ -182,14 +190,6 @@
     </Reference>
     <Reference Include="Xamarin.Forms.Xaml, Version=1.4.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Xamarin.Forms.1.4.3.6376\lib\WP80\Xamarin.Forms.Xaml.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="XFExtensions.Controls.Abstractions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\XamarinFormsExtensions.Controls.1.0.0\lib\wp8\XFExtensions.Controls.Abstractions.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="XFExtensions.Controls.WindowsPhone, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\XamarinFormsExtensions.Controls.1.0.0\lib\wp8\XFExtensions.Controls.WindowsPhone.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>

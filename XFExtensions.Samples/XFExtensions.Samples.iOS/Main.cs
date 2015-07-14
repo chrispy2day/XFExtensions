@@ -4,6 +4,7 @@ using System.Linq;
 
 using Foundation;
 using UIKit;
+using XFExtensions.Controls.iOSUnified;
 
 namespace XFExtensions.Samples.iOS
 {
@@ -15,6 +16,7 @@ namespace XFExtensions.Samples.iOS
             // if you want to use a different Application Delegate class from "AppDelegate"
             // you can specify it here.
             UIApplication.Main(args, null, "AppDelegate");
+            ControlsModule.Init();
         }
     }
 }

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using Xamarin.Forms;
+﻿using Xamarin.Forms;
+using XFExtensions.Samples.Views;
 
 namespace XFExtensions.Samples
 {
@@ -11,20 +7,7 @@ namespace XFExtensions.Samples
     {
         public App()
         {
-            // The root page of your application
-            MainPage = new ContentPage
-            {
-                Content = new StackLayout
-                {
-                    VerticalOptions = LayoutOptions.Center,
-                    Children = {
-						new Label {
-							XAlign = TextAlignment.Center,
-							Text = "Welcome to Xamarin Forms!"
-						}
-					}
-                }
-            };
+            MainPage = new EchoGesturesPage();
         }
 
         protected override void OnStart()
