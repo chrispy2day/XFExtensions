@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using Android.App;
+using Android.App.Usage;
 using Android.Content;
 using Android.OS;
 using Android.Runtime;
@@ -100,46 +101,64 @@ namespace XFExtensions.Controls.Droid
         private static int SWIPE_THRESHOLD = 100;
         private static int SWIPE_VELOCITY_THRESHOLD = 100;
 
-        public event EventHandler OnSwipeDown;
-        public event EventHandler OnSwipeUp;
-        public event EventHandler OnSwipeLeft;
-        public event EventHandler OnSwipeRight;
+        public event EventHandler SwipeDown;
+        public event EventHandler SwipeUp;
+        public event EventHandler SwipeLeft;
+        public event EventHandler SwipeRight;
+
+        public event EventHandler SingleTap;
+        public event EventHandler DoubleTap;
 
         public override bool OnFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
         {
             float diffY = e2.GetY() - e1.GetY();
             float diffX = e2.GetX() - e1.GetX();
 
+            EventHandler handler = null;
+
             if (Math.Abs(diffX) > Math.Abs(diffY))
             {
                 if (Math.Abs(diffX) > SWIPE_THRESHOLD && Math.Abs(velocityX) > SWIPE_VELOCITY_THRESHOLD)
-                {
-                    if (diffX > 0)
-                    {
-                        if (OnSwipeRight != null)
-                            OnSwipeRight(this, null);
-                    }
-                    else
-                    {
-                        if (OnSwipeLeft != null)
-                            OnSwipeLeft(this, null);
-                    }
-                }
+                    handler = diffX > 0 ? SwipeRight : SwipeLeft;
             }
             else if (Math.Abs(diffY) > SWIPE_THRESHOLD && Math.Abs(velocityY) > SWIPE_VELOCITY_THRESHOLD)
-            {
-                if (diffY > 0)
-                {
-                    if (OnSwipeDown != null)
-                        OnSwipeDown(this, null);
-                }
-                else
-                {
-                    if (OnSwipeUp != null)
-                        OnSwipeUp(this, null);
-                }
-            }
+                handler = diffY > 0 ? SwipeDown : SwipeUp;
+
+            if (handler != null)
+                handler(this, new EventArgs());
             return true;
+        }
+
+        public override bool OnDoubleTap(MotionEvent e)
+        {
+            var handler = DoubleTap;
+            if (handler != null)
+                handler(this, new EventArgs());
+            return base.OnDoubleTap(e);
+        }
+
+        public override bool OnDoubleTapEvent(MotionEvent e)
+        {
+            var handler = DoubleTap;
+            if (handler != null)
+                handler(this, new EventArgs());
+            return base.OnDoubleTapEvent(e);
+        }
+
+        public override bool OnSingleTapConfirmed(MotionEvent e)
+        {
+            var handler = SingleTap;
+            if (handler != null)
+                handler(this, new EventArgs());
+            return base.OnSingleTapConfirmed(e);
+        }
+
+        public override bool OnSingleTapUp(MotionEvent e)
+        {
+            var handler = SingleTap;
+            if (handler != null)
+                handler(this, new EventArgs());
+            return base.OnSingleTapUp(e);
         }
     }
 

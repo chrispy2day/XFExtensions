@@ -24,7 +24,7 @@ namespace XFExtensions.Controls.Abstractions
 
             EventHandler handler = SwipeDown;
             if (handler != null)
-                SwipeDown(this, new EventArgs());
+                handler(this, new EventArgs());
         }
 
         public void OnSwipeUp()
@@ -34,7 +34,7 @@ namespace XFExtensions.Controls.Abstractions
 
             EventHandler handler = SwipeUp;
             if (handler != null)
-                SwipeUp(this, new EventArgs());
+                handler(this, new EventArgs());
         }
 
         public void OnSwipeLeft()
@@ -44,7 +44,7 @@ namespace XFExtensions.Controls.Abstractions
 
             EventHandler handler = SwipeLeft;
             if (handler != null)
-                SwipeLeft(this, new EventArgs());
+                handler(this, new EventArgs());
         }
 
         public void OnSwipeRight()
@@ -54,7 +54,7 @@ namespace XFExtensions.Controls.Abstractions
 
             EventHandler handler = SwipeRight;
             if (handler != null)
-                SwipeRight(this, new EventArgs());
+                handler(this, new EventArgs());
         }
 
         public static readonly BindableProperty SwipeRightCommandProperty = BindableProperty.Create<GestureView, ICommand>(
@@ -93,33 +93,43 @@ namespace XFExtensions.Controls.Abstractions
 
         #region Taps
 
-        public static BindableProperty NumberOfTapsProperty = BindableProperty.Create<GestureView, int>(
-            p => p.NumberOfTaps, 1, BindingMode.Default);
+        public event EventHandler SingleTap;
+        public event EventHandler DoubleTap;
 
-        public static readonly BindableProperty TapCommandProperty = BindableProperty.Create<GestureView, ICommand>(
-            p => p.TapCommand, default(ICommand), BindingMode.Default);
-
-        public ICommand TapCommand
+        public static readonly BindableProperty SingleTapCommandProperty = BindableProperty.Create<GestureView, ICommand>(
+            p => p.SingleTapCommand, default(ICommand), BindingMode.Default);
+        public ICommand SingleTapCommand
         {
-            get { return (ICommand) GetValue(TapCommandProperty); }
-            set { SetValue(TapCommandProperty, value); }
+            get { return (ICommand)GetValue(SingleTapCommandProperty); }
+            set { SetValue(SingleTapCommandProperty, value); }
         }
 
-        public int NumberOfTaps
+        public static readonly BindableProperty DoubleTapCommandProperty = BindableProperty.Create<GestureView, ICommand>(
+            p => p.DoubleTapCommand, default(ICommand), BindingMode.Default);
+        public ICommand DoubleTapCommand
         {
-            get { return (int)GetValue(NumberOfTapsProperty); }
-            set { SetValue(NumberOfTapsProperty, value); }
+            get { return (ICommand)GetValue(DoubleTapCommandProperty); }
+            set { SetValue(DoubleTapCommandProperty, value); }
         }
 
-        public event EventHandler Tapped;
-        public void OnTap()
+        public void OnSingleTap()
         {
-            if (TapCommand != null && TapCommand.CanExecute(null))
-                TapCommand.Execute(null);
+            if (SingleTapCommand != null && SingleTapCommand.CanExecute(null))
+                SingleTapCommand.Execute(null);
 
-            EventHandler handler = Tapped;
-            if (Tapped != null)
-                Tapped(this, new EventArgs());
+            EventHandler handler = SingleTap;
+            if (handler != null)
+                handler(this, new EventArgs());
+        }
+
+        public void OnDoubleTap()
+        {
+            if (DoubleTapCommand != null && DoubleTapCommand.CanExecute(null))
+                DoubleTapCommand.Execute(null);
+
+            EventHandler handler = DoubleTap;
+            if (handler != null)
+                handler(this, new EventArgs());
         }
 
         #endregion

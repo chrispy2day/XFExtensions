@@ -21,7 +21,8 @@ namespace XFExtensions.Controls.iOSUnified
         private UIGestureRecognizer _swipeLeft;
         private UIGestureRecognizer _swipeRight;
 
-        private UITapGestureRecognizer _tap;
+        private UITapGestureRecognizer _singleTap;
+        private UITapGestureRecognizer _doubleTap;
 
         private UIPinchGestureRecognizer _pinch;
 
@@ -66,12 +67,19 @@ namespace XFExtensions.Controls.iOSUnified
             };
 
             // setup the tap gesture
-            _tap = new UITapGestureRecognizer(() =>
+            _singleTap = new UITapGestureRecognizer(() =>
             {
-                gestureView.OnTap();
+                gestureView.OnSingleTap();
             })
             {
-                NumberOfTapsRequired = (nuint)gestureView.NumberOfTaps
+                NumberOfTapsRequired = 1
+            };
+            _doubleTap = new UITapGestureRecognizer(() =>
+            {
+                gestureView.OnDoubleTap();
+            })
+            {
+                NumberOfTapsRequired = 2
             };
 
             // setup the pinch gesture
@@ -105,8 +113,10 @@ namespace XFExtensions.Controls.iOSUnified
                     this.RemoveGestureRecognizer(_swipeRight);
                 if (_swipeUp != null)
                     this.RemoveGestureRecognizer(_swipeUp);
-                if (_tap != null)
-                    this.RemoveGestureRecognizer(_tap);
+                if (_doubleTap != null)
+                    this.RemoveGestureRecognizer(_doubleTap);
+                if (_singleTap != null)
+                    this.RemoveGestureRecognizer(_singleTap);
                 if (_pinch != null)
                     this.RemoveGestureRecognizer(_pinch);
             }
@@ -118,7 +128,8 @@ namespace XFExtensions.Controls.iOSUnified
                 this.AddGestureRecognizer(_swipeLeft);
                 this.AddGestureRecognizer(_swipeRight);
                 this.AddGestureRecognizer(_swipeUp);
-                this.AddGestureRecognizer(_tap);
+                this.AddGestureRecognizer(_doubleTap);
+                this.AddGestureRecognizer(_singleTap);
                 this.AddGestureRecognizer(_pinch);
             }
         }
@@ -126,8 +137,6 @@ namespace XFExtensions.Controls.iOSUnified
         protected override void OnElementPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             base.OnElementPropertyChanged(sender, e);
-            if (e.PropertyName == GestureView.NumberOfTapsProperty.PropertyName && _tap != null)
-                _tap.NumberOfTapsRequired = (nuint)((GestureView)Element).NumberOfTaps;
         }
 
         protected override void Dispose(bool disposing)
@@ -153,6 +162,21 @@ namespace XFExtensions.Controls.iOSUnified
                 {
                     _swipeUp.Dispose();
                     _swipeUp = null;
+                }
+                if (_doubleTap != null)
+                {
+                    _doubleTap.Dispose();
+                    _doubleTap = null;
+                }
+                if (_singleTap != null)
+                {
+                    _singleTap.Dispose();
+                    _singleTap = null;
+                }
+                if (_pinch != null)
+                {
+                    _pinch.Dispose();
+                    _pinch = null;
                 }
             }
             // don't try and dispose the base - it will try and dispose of the native control that we didn't create

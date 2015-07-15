@@ -12,8 +12,8 @@
                           SwipeLeftCommand="{Binding SwipeLeftCommand}"
                           SwipeUpCommand="{Binding SwipeUpCommand}"
                           SwipeDownCommand="{Binding SwipeDownCommand}"
-                          NumberOfTaps="2"
-                          TapCommand="{Binding DoubleTapCommand}"
+                          SingleTapCommand="{Binding SingleTapCommand}"
+                          DoubleTapCommand="{Binding DoubleTapCommand}"
                           PinchCommand="{Binding PinchCommand}">
         <AbsoluteLayout HorizontalOptions="FillAndExpand" 
                         VerticalOptions="FillAndExpand"
