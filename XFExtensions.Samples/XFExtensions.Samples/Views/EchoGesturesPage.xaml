@@ -20,6 +20,9 @@
                         BackgroundColor="Silver">
             <Label AbsoluteLayout.LayoutBounds="0.5, 0.5, AutoSize, AutoSize" 
                    AbsoluteLayout.LayoutFlags="PositionProportional"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   TextColor="Black"
                    Text="{Binding GestureMessage}" />
         </AbsoluteLayout>
     </controls:GestureView>

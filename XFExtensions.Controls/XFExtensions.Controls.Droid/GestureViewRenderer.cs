@@ -40,20 +40,20 @@ namespace XFExtensions.Controls.Droid
             {
                 this.GenericMotion -= HandleGenericMotion;
                 this.Touch -= HandleTouch;
-                _listener.OnSwipeLeft -= HandleOnSwipeLeft;
-                _listener.OnSwipeRight -= HandleOnSwipeRight;
-                _listener.OnSwipeUp -= HandleOnSwipeTop;
-                _listener.OnSwipeDown -= HandleOnSwipeDown;
+                _listener.SwipeLeft -= HandleOnSwipeLeft;
+                _listener.SwipeRight -= HandleOnSwipeRight;
+                _listener.SwipeUp -= HandleOnSwipeTop;
+                _listener.SwipeDown -= HandleOnSwipeDown;
             }
 
             if (e.OldElement == null)
             {
                 this.GenericMotion += HandleGenericMotion;
                 this.Touch += HandleTouch;
-                _listener.OnSwipeLeft += HandleOnSwipeLeft;
-                _listener.OnSwipeRight += HandleOnSwipeRight;
-                _listener.OnSwipeUp += HandleOnSwipeTop;
-                _listener.OnSwipeDown += HandleOnSwipeDown;
+                _listener.SwipeLeft += HandleOnSwipeLeft;
+                _listener.SwipeRight += HandleOnSwipeRight;
+                _listener.SwipeUp += HandleOnSwipeTop;
+                _listener.SwipeDown += HandleOnSwipeDown;
             }
         }
 
