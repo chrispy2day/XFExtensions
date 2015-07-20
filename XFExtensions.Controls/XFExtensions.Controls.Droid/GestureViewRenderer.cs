@@ -54,6 +54,7 @@ namespace XFExtensions.Controls.Droid
                 _listener.SwipeRight += HandleOnSwipeRight;
                 _listener.SwipeUp += HandleOnSwipeTop;
                 _listener.SwipeDown += HandleOnSwipeDown;
+                _listener.DoubleTap += HandleOnDoubleTap;
             }
         }
 
@@ -89,6 +90,12 @@ namespace XFExtensions.Controls.Droid
         {
             GestureView _gi = (GestureView)this.Element;
             _gi.OnSwipeDown();
+        }
+
+        void HandleOnDoubleTap(object sender, EventArgs e)
+        {
+            GestureView _gi = (GestureView)this.Element;
+            _gi.OnDoubleTap();
         }
     }
 

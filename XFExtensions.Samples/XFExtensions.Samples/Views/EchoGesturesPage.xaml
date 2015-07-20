@@ -8,13 +8,16 @@
     <ContentPage.BindingContext>
         <viewModels:EchoGesturesVM />
     </ContentPage.BindingContext>
-    <controls:GestureView SwipeRightCommand="{Binding SwipeRightCommand}"
+    <controls:GestureView HorizontalOptions="FillAndExpand"
+                          VerticalOptions="FillAndExpand"
+                          SwipeRightCommand="{Binding SwipeRightCommand}"
                           SwipeLeftCommand="{Binding SwipeLeftCommand}"
                           SwipeUpCommand="{Binding SwipeUpCommand}"
                           SwipeDownCommand="{Binding SwipeDownCommand}"
                           SingleTapCommand="{Binding SingleTapCommand}"
                           DoubleTapCommand="{Binding DoubleTapCommand}"
                           PinchCommand="{Binding PinchCommand}">
+        <!-- AutoLayout appears to be swallowning touch events on Android.  Works correctly on iOS.  -->
         <AbsoluteLayout HorizontalOptions="FillAndExpand" 
                         VerticalOptions="FillAndExpand"
                         BackgroundColor="Silver">
