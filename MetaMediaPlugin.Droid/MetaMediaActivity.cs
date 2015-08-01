@@ -65,7 +65,11 @@ namespace MetaMediaPlugin
 
         private Task<MediaPickedEventArgs> GetMediaFileAsync(int requestCode, Intent data)
         {
-            
+            if (_mediaAction == SelectMediaAction && _mediaType == PhotoMediaType)
+            {
+                // get the file
+
+            }
         }
     }
 }

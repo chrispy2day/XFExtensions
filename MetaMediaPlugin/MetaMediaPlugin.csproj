@@ -35,7 +35,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
-    <ProjectReference Include="..\MetaMedia.Abstractions\MetaMediaPlugin.Abstractions.csproj">
+    <ProjectReference Include="..\MetaMediaPlugin.Abstractions\MetaMediaPlugin.Abstractions.csproj">
       <Project>{23bb238f-ccec-47c1-96c4-f5249de893ea}</Project>
       <Name>MetaMediaPlugin.Abstractions</Name>
     </ProjectReference>
