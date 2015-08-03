@@ -41,9 +41,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\DynamicListVM.cs" />
     <Compile Include="ViewModels\EchoGesturesVM.cs" />
+    <Compile Include="ViewModels\MediaVM.cs" />
     <Compile Include="ViewModels\MenuVM.cs" />
     <Compile Include="Views\EchoGesturesPage.xaml.cs">
       <DependentUpon>EchoGesturesPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\MediaPage.xaml.cs">
+      <DependentUpon>MediaPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\MenuPage.xaml.cs">
       <DependentUpon>MenuPage.xaml</DependentUpon>
@@ -80,6 +84,14 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\MetaMediaPlugin.Abstractions\MetaMediaPlugin.Abstractions.csproj">
+      <Project>{23bb238f-ccec-47c1-96c4-f5249de893ea}</Project>
+      <Name>MetaMediaPlugin.Abstractions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\MetaMediaPlugin\MetaMediaPlugin.csproj">
+      <Project>{8cea8543-cab6-485a-954c-6fa81d280e97}</Project>
+      <Name>MetaMediaPlugin</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\XFExtensions.Controls\XFExtensions.Controls.Abstractions\XFExtensions.Controls.Abstractions.csproj">
       <Project>{14c534b6-1984-41a9-a384-d3a5508588e3}</Project>
       <Name>XFExtensions.Controls.Abstractions</Name>
@@ -87,6 +99,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Views\EchoGesturesPage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Views\MediaPage.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
