@@ -8,6 +8,15 @@
     </ContentPage.BindingContext>
     <StackLayout Orientation="Vertical"
                  Padding="20, 10">
-        <Button Text="Choose a Photo" Command="{Binding ChoosePhotoCommand}" />
+		<Image Source="{Binding SelectedImage}" 
+			   BackgroundColor="Black" 
+			   Aspect="AspectFit" 
+			   HeightRequest="200" 
+			   WidthRequest="200" 
+			   VerticalOptions="StartAndExpand" />
+        <Button Text="Choose a Photo" 
+        		Command="{Binding ChoosePhotoCommand}"
+        		VerticalOptions="End"
+        		BackgroundColor="#CCCCCC" />
     </StackLayout>
 </ContentPage>

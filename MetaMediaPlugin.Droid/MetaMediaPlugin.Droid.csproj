@@ -3,14 +3,12 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{93E73D12-DA3B-4D2D-8C9A-D48480137E06}</ProjectGuid>
     <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MetaMediaPlugin</RootNamespace>
-    <AssemblyName>MetaMediaPlugin.Droid</AssemblyName>
+    <AssemblyName>MetaMediaPlugin</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
@@ -60,7 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MetaMediaPlugin.Abstractions\MetaMediaPlugin.Abstractions.csproj">
-      <Project>{23bb238f-ccec-47c1-96c4-f5249de893ea}</Project>
+      <Project>{23BB238F-CCEC-47C1-96C4-F5249DE893EA}</Project>
       <Name>MetaMediaPlugin.Abstractions</Name>
     </ProjectReference>
   </ItemGroup>

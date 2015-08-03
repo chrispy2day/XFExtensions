@@ -86,17 +86,17 @@ namespace MetaMediaPlugin
 
         public Task<MediaFile> TakePhotoAsync(StoreCameraMediaOptions options)
         {
-            throw new Settings.System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public Task<MediaFile> PickVideoAsync()
         {
-            throw new Settings.System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public Task<MediaFile> TakeVideoAsync(StoreVideoOptions options)
         {
-            throw new Settings.System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }

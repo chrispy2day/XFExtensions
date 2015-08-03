@@ -7,7 +7,7 @@ namespace XFExtensions.Samples
     {
         public App()
         {
-            MainPage = new EchoGesturesPage();
+            MainPage = new MediaPage();
         }
 
         protected override void OnStart()
