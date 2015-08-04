@@ -9,7 +9,7 @@
     <StackLayout Orientation="Vertical"
                  Padding="20, 10">
 		<Image Source="{Binding SelectedImage}" 
-			   BackgroundColor="Black" 
+			   BackgroundColor="White" 
 			   Aspect="AspectFit" 
 			   HeightRequest="200" 
 			   WidthRequest="200" 

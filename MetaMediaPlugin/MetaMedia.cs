@@ -26,7 +26,7 @@ namespace MetaMediaPlugin
         static IMedia CreateMedia()
         {
 #if PORTABLE
-        return null;
+            return null;
 #else
             return new MediaImplementation();
 #endif
