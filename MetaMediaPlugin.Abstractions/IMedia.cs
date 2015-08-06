@@ -41,7 +41,7 @@ namespace MetaMediaPlugin.Abstractions
         /// </summary>
         /// <param name="options">Camera Media Options</param>
         /// <returns>Media file of photo or null if canceled</returns>
-        Task<MediaFile> TakePhotoAsync(StoreCameraMediaOptions options);
+        Task<MediaFile> TakePhotoAsync();
 
         /// <summary>
         /// Picks a video from the default gallery
@@ -54,7 +54,7 @@ namespace MetaMediaPlugin.Abstractions
         /// </summary>
         /// <param name="options">Video Media Options</param>
         /// <returns>Media file of new video or null if canceled</returns>
-        Task<MediaFile> TakeVideoAsync(StoreVideoOptions options);
+        Task<MediaFile> TakeVideoAsync();
 
     }
 }

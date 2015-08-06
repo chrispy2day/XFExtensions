@@ -7,7 +7,8 @@
         <viewModels:MediaVM />
     </ContentPage.BindingContext>
     <StackLayout Orientation="Vertical"
-                 Padding="20, 10">
+                 Padding="20, 10"
+                 Spacing="10">
 		<Image Source="{Binding SelectedImage}" 
 			   BackgroundColor="White" 
 			   Aspect="AspectFit" 
@@ -16,6 +17,10 @@
 			   VerticalOptions="StartAndExpand" />
         <Button Text="Choose a Photo" 
         		Command="{Binding ChoosePhotoCommand}"
+        		VerticalOptions="End"
+        		BackgroundColor="#CCCCCC" />
+		<Button Text="Take a Photo" 
+        		Command="{Binding TakePhotoCommand}"
         		VerticalOptions="End"
         		BackgroundColor="#CCCCCC" />
     </StackLayout>

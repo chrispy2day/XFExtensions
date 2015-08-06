@@ -50,6 +50,7 @@ namespace MetaMediaPlugin
         {
             if (_tcs != null)
                 throw new InvalidOperationException("Only one operation can be active at a time.");
+            _tcs = new TaskCompletionSource<MediaFile>();
 
             // start our own activity which is just a middle man to the default device activities for taking / selecting media
             _context.StartActivity(CreateMetaMediaIntent(mediaType, mediaAction));
@@ -63,7 +64,7 @@ namespace MetaMediaPlugin
             return GetMediaAsync(MetaMediaActivity.PhotoMediaType, MetaMediaActivity.SelectMediaAction);
         }
 
-        public Task<MediaFile> TakePhotoAsync(StoreCameraMediaOptions options)
+        public Task<MediaFile> TakePhotoAsync()
         {
             return GetMediaAsync(MetaMediaActivity.PhotoMediaType, MetaMediaActivity.CreateMediaAction);
         }
@@ -73,7 +74,7 @@ namespace MetaMediaPlugin
             throw new NotImplementedException();
         }
 
-        public Task<MediaFile> TakeVideoAsync(StoreVideoOptions options)
+        public Task<MediaFile> TakeVideoAsync()
         {
             throw new NotImplementedException();
         }

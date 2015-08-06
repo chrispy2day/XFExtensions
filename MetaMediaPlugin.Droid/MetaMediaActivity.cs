@@ -64,6 +64,7 @@ namespace MetaMediaPlugin
                     Finish();
                     return;
                 }
+                StartTakePhotoIntent();
             }
         }
 
