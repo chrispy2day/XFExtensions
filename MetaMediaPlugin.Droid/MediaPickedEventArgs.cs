@@ -25,11 +25,11 @@ namespace MetaMediaPlugin
             Error = error;
         }
 
-        public MediaPickedEventArgs(int id, bool isCanceled, MediaFile media = null)
+        public MediaPickedEventArgs(int id, bool cancelled, MediaFile media = null)
         {
             RequestId = id;
-            IsCanceled = isCanceled;
-            if (!IsCanceled && media == null)
+            Cancelled = cancelled;
+            if (!cancelled && media == null)
                 throw new ArgumentNullException("media");
 
             Media = media;
@@ -41,7 +41,13 @@ namespace MetaMediaPlugin
             private set;
         }
 
-        public bool IsCanceled
+        public bool Cancelled
+        {
+            get;
+            private set;
+        }
+
+        public bool Failed
         {
             get;
             private set;
@@ -57,20 +63,6 @@ namespace MetaMediaPlugin
         {
             get;
             private set;
-        }
-
-        public Task<MediaFile> ToTask()
-        {
-            var tcs = new TaskCompletionSource<MediaFile>();
-
-            if (IsCanceled)
-                tcs.SetResult(null);
-            else if (Error != null)
-                tcs.SetResult(null);
-            else
-                tcs.SetResult(Media);
-
-            return tcs.Task;
         }
     }
 }
