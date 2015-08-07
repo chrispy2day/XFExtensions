@@ -120,12 +120,7 @@ namespace MetaMediaPlugin
         private void HandlePickPhotoResults(int requestCode, Intent data)
         {
             var stream = Forms.Context.ContentResolver.OpenInputStream(data.Data);
-            var imgBytes = ReadFully(stream);
-            stream.Close();
-            stream.Dispose();
-            var file = new MediaFile {
-                Media = imgBytes
-            };
+            var file = new MediaFile { MediaStream = stream };
             OnMediaPicked(new MediaPickedEventArgs(requestCode, false, file));
         }
 
@@ -158,12 +153,16 @@ namespace MetaMediaPlugin
 
         private async Task GeoTagPhotoAsync()
         {
+            // see if the photo already contains geo coords
+            var exif = new ExifInterface(_file.Path);
+            if (!string.IsNullOrWhiteSpace(exif.GetAttribute(ExifInterface.TagGpsLatitude)))
+                return;
+
             RequestCurrentLocation();
             var location = await _locationTCS.Task;
 
             try 
             {
-                var exif = new ExifInterface(_file.Path);
                 int num1Lat = (int)Math.Floor(location.Latitude);
                 int num2Lat = (int)Math.Floor((location.Latitude - num1Lat) * 60);
                 double num3Lat = (location.Latitude - ((double)num1Lat+((double)num2Lat/60))) * 3600000;
@@ -206,10 +205,7 @@ namespace MetaMediaPlugin
             SendBroadcast(mediaScanIntent);
             // return the file
             var stream = Forms.Context.ContentResolver.OpenInputStream(contentUri);
-            var imgBytes = ReadFully(stream);
-            stream.Close();
-            stream.Dispose();
-            var file = new MediaFile { Media = imgBytes };
+            var file = new MediaFile { MediaStream = stream };
             OnMediaPicked(new MediaPickedEventArgs(requestCode, false, file));
         }
 
@@ -222,20 +218,6 @@ namespace MetaMediaPlugin
             var picked = MediaPicked;
             if (picked != null)
                 picked (null, e);
-        }
-
-        private static byte[] ReadFully(System.IO.Stream input)
-        {
-            byte[] buffer = new byte[16*1024];
-            using (MemoryStream ms = new MemoryStream())
-            {
-                int read;
-                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    ms.Write(buffer, 0, read);
-                }
-                return ms.ToArray();
-            }
         }
 
         #endregion
