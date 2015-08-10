@@ -8,23 +8,12 @@ using System.Threading.Tasks;
 using CoreLocation;
 using Photos;
 using System.Runtime.InteropServices;
+using MobileCoreServices;
 
 namespace MetaMediaPlugin
 {
     public class MediaImplementation : IMedia
     {
-        private const string TypeImage = "public.image";
-        private const string TypeMovie = "public.movie";
-        private TaskCompletionSource<MediaFile> _tcs;
-        private ALAssetsLibrary _library;
-
-        public MediaImplementation()
-        {
-            _library = new ALAssetsLibrary();
-        }
-
-        #region IMedia implementation
-
         static UIViewController GetViewController()
         {
             var vc = UIApplication.SharedApplication
@@ -36,75 +25,36 @@ namespace MetaMediaPlugin
             return vc;
         }
 
-        public async Task<MediaFile> PickPhotoAsync()
+        #region Pick Photo
+
+        public bool IsPickPhotoSupported
         {
-            if (!IsPickPhotoSupported)
-                throw new NotSupportedException();
-
-            if (_tcs != null)
-                throw new InvalidOperationException("Only one operation can be active at a time.");
-            _tcs = new TaskCompletionSource<MediaFile>();
-
-            var rvc = GetViewController();
-            if (rvc == null)
-                _tcs.SetException(new InvalidOperationException("Unable to identify the current view controller."));
-            else
+            get
             {
-                var assetUrlTCS = new TaskCompletionSource<NSUrl>();
-                TweetStation.Camera.SelectPicture(rvc, (dict) =>
-                    {
-                        // get the assetUrl for the selected image
-                        assetUrlTCS.SetResult(dict[UIImagePickerController.ReferenceUrl] as NSUrl);
-                    });
-                var assetUrl = await assetUrlTCS.Task;
-                var file = await GetMediaFileForAssetAsync(assetUrl);
-                _tcs.SetResult(file);
+                var avaialbleLibraryMedia = UIImagePickerController.AvailableMediaTypes(UIImagePickerControllerSourceType.PhotoLibrary) ?? new string[0];
+                return avaialbleLibraryMedia.Contains(UTType.Image);
             }
-            var result = await _tcs.Task;
-            _tcs = null;
-            return result;
         }
 
-        public async Task<MediaFile> TakePhotoAsync()
+        public async Task<MediaFile> PickPhotoAsync()
         {
-            if (_tcs != null)
-                throw new InvalidOperationException("Only one operation can be active at a time.");
-            _tcs = new TaskCompletionSource<MediaFile>();
+            var mediaInfoTask = new TaskCompletionSource<NSDictionary>();
 
-            var rvc = GetViewController();
-            if (rvc == null)
-                _tcs.SetException(new InvalidOperationException("Unable to identify the current view controller."));
-            else
-            {
-                var assetUrlTCS = new TaskCompletionSource<NSUrl>();
-                TweetStation.Camera.TakePicture(rvc, async (dict) =>
-                    {
-                        var photo = dict.ValueForKey(UIImagePickerController.OriginalImage) as UIImage;
-                        var meta = dict.ValueForKey(UIImagePickerController.MediaMetadata) as NSDictionary;
-                        var newMetadata = new NSMutableDictionary(meta);
-                        if (!newMetadata.ContainsKey(ImageIO.CGImageProperties.GPSDictionary))
-                        {
-                            var gpsData = await BuildGPSDataAsync();
-                            if (gpsData != null)
-                                newMetadata.Add(ImageIO.CGImageProperties.GPSDictionary, gpsData);
-                        }
+            var picker = new UIImagePickerController();
+            picker.SourceType = UIImagePickerControllerSourceType.PhotoLibrary;
+            picker.MediaTypes = new string[] {UTType.Image};
+            picker.AllowsEditing = false;
+            picker.Delegate = new MediaDelegate { InfoTask = mediaInfoTask };
+            if (UIDevice.CurrentDevice.UserInterfaceIdiom == UIUserInterfaceIdiom.Pad)
+                picker.ModalInPopover = true;
 
-                        // This bit of code saves to the Photo Album with metadata
-                        _library.WriteImageToSavedPhotosAlbum(photo.CGImage, newMetadata, (assetUrl, error) =>
-                            {
-                                // any additional processing can go here
-                                if (error == null)
-                                    assetUrlTCS.SetResult(assetUrl);
-                                else
-                                    assetUrlTCS.SetException(new Exception(error.LocalizedFailureReason));
-                            });
-                    });
-                var file = await GetMediaFileForAssetAsync(await assetUrlTCS.Task);
-                _tcs.SetResult(file);
-            }
-            var result = await _tcs.Task;
-            _tcs = null;
-            return result;
+            var vc = GetViewController();
+            vc.PresentViewController(picker, true, null);
+
+            var info = await mediaInfoTask.Task;
+            var assetUrl = info[UIImagePickerController.ReferenceUrl] as NSUrl;
+
+            return await GetMediaFileForAssetAsync(assetUrl);
         }
 
         private async Task<MediaFile> GetMediaFileForAssetAsync(NSUrl assetUrl)
@@ -131,18 +81,23 @@ namespace MetaMediaPlugin
                         imgTCS.SetResult(data);
                     });
 
-                var img = await imgTCS.Task.ConfigureAwait(false);
-                return new MediaFile { Name = imageName, MediaStream = img.AsStream() };
+                var imgData = await imgTCS.Task.ConfigureAwait(false);
+                var imgBytes = StreamHelpers.ReadFully(imgData.AsStream());
+                imgData.Dispose();
+                return new MediaFile { FileName = imageName, MediaBytes = imgBytes };
             }
             else
             {
                 // get the default representation of the asset
                 var dRepTCS = new TaskCompletionSource<ALAssetRepresentation>();
-                _library.AssetForUrl(
-                    assetUrl,
-                    (asset) => dRepTCS.SetResult(asset.DefaultRepresentation),
-                    (error) => dRepTCS.SetException(new Exception(error.LocalizedFailureReason))
-                );
+                using (var library = new ALAssetsLibrary())
+                {
+                    library.AssetForUrl(
+                        assetUrl,
+                        (asset) => dRepTCS.SetResult(asset.DefaultRepresentation),
+                        (error) => dRepTCS.SetException(new Exception(error.LocalizedFailureReason))
+                    );
+                }
                 var rep = await dRepTCS.Task.ConfigureAwait(false);
 
                 // now some really ugly code to copy that as a byte array
@@ -154,9 +109,80 @@ namespace MetaMediaPlugin
                 //Marshal.Copy(buffer, imgData, 0, imgData.Length);
                 var imgData = NSData.FromBytes(buffer, (uint)size);
                 Marshal.FreeHGlobal(buffer);
-
-                return new MediaFile { Name = rep.Filename, MediaStream = imgData.AsStream() };
+                var imgBytes = StreamHelpers.ReadFully(imgData.AsStream());
+                imgData.Dispose();
+                return new MediaFile { FileName = rep.Filename, MediaBytes = imgBytes };
             }
+        }
+
+        #endregion
+
+        #region Take Photo
+
+        public bool IsCameraAvailable
+        {
+            get
+            {
+                return UIImagePickerController.IsSourceTypeAvailable(UIImagePickerControllerSourceType.Camera);
+            }
+        }
+
+        public bool IsTakePhotoSupported
+        {
+            get
+            {
+                var availableCameraMedia = UIImagePickerController.AvailableMediaTypes(UIImagePickerControllerSourceType.Camera) ?? new string[0];
+                return availableCameraMedia.Contains(UTType.Image);
+            }
+        }
+
+        public async Task<MediaFile> TakePhotoAsync()
+        {
+            var mediaInfoTask = new TaskCompletionSource<NSDictionary>();
+
+            var picker = new UIImagePickerController();
+            picker.SourceType = UIImagePickerControllerSourceType.Camera;
+            picker.MediaTypes = new string[] {UTType.Image};
+            picker.AllowsEditing = false;
+            picker.Delegate = new MediaDelegate { InfoTask = mediaInfoTask };
+
+            var vc = GetViewController();
+            vc.PresentViewController(picker, true, null);
+
+            var info = await mediaInfoTask.Task;
+            var assetLocation = await SavePhotoWithLocationAsync(info);
+            return await GetMediaFileForAssetAsync(assetLocation);
+        }
+
+        private async Task<NSUrl> SavePhotoWithLocationAsync(NSDictionary info)
+        {
+            var image = (UIImage)info[UIImagePickerController.EditedImage];
+            if (image == null)
+                image = (UIImage)info[UIImagePickerController.OriginalImage];
+
+            var metadata = info[UIImagePickerController.MediaMetadata] as NSDictionary;
+            var newMetadata = new NSMutableDictionary(metadata);
+            if (!newMetadata.ContainsKey(ImageIO.CGImageProperties.GPSDictionary))
+            {
+                var gpsData = await BuildGPSDataAsync();
+                if (gpsData != null)
+                    newMetadata.Add(ImageIO.CGImageProperties.GPSDictionary, gpsData);
+            }
+
+            // save to camera roll with metadata
+            var assetUrlTCS = new TaskCompletionSource<NSUrl>();
+            using (var library = new ALAssetsLibrary())
+            {
+                library.WriteImageToSavedPhotosAlbum(image.CGImage, newMetadata, (newAssetUrl, error) =>
+                    {
+                        // any additional processing can go here
+                        if (error == null)
+                            assetUrlTCS.SetResult(newAssetUrl);
+                        else
+                            assetUrlTCS.SetException(new Exception(error.LocalizedFailureReason));
+                    });
+            }
+            return await assetUrlTCS.Task;
         }
 
         CLLocationManager _locationManager;
@@ -189,11 +215,6 @@ namespace MetaMediaPlugin
             var timeoutTask = System.Threading.Tasks.Task.Delay(5000); // 5 second wait
             var locationTask = _locationTCS.Task;
 
-            // setup a date formatter
-            var dateFormatter = new NSDateFormatter();
-            dateFormatter.TimeZone = new NSTimeZone("UTC");
-            dateFormatter.DateFormat = "HH:mm:ss.SS";
-
             // try and set a location based on whatever task ends first
             CLLocation location;
             var completeTask = await System.Threading.Tasks.Task.WhenAny(locationTask, timeoutTask);
@@ -217,13 +238,21 @@ namespace MetaMediaPlugin
                 ImageIO.CGImageProperties.GPSLatitudeRef, (location.Coordinate.Latitude >= 0) ? "N" : "S",
                 ImageIO.CGImageProperties.GPSLongitude, Math.Abs(location.Coordinate.Longitude),
                 ImageIO.CGImageProperties.GPSLongitudeRef, (location.Coordinate.Longitude >= 0) ? "E" : "W",
-                ImageIO.CGImageProperties.GPSTimeStamp, dateFormatter.StringFor(location.Timestamp),
                 ImageIO.CGImageProperties.GPSAltitude, Math.Abs(location.Altitude),
                 ImageIO.CGImageProperties.GPSDateStamp, DateTime.UtcNow.ToString("yyyy:MM:dd"),
-                ImageIO.CGImageProperties.GPSDateStamp, DateTime.UtcNow.ToString("HH:mm:ss.ff")
+                ImageIO.CGImageProperties.GPSTimeStamp, DateTime.UtcNow.ToString("HH:mm:ss.ff")
             );
             return gpsData;
         }
+
+        #endregion
+
+
+
+
+
+        #region IMedia implementation
+
 
         public System.Threading.Tasks.Task<MediaFile> PickVideoAsync()
         {
@@ -235,38 +264,12 @@ namespace MetaMediaPlugin
             throw new NotImplementedException();
         }
 
-        public bool IsCameraAvailable
-        {
-            get
-            {
-                return UIImagePickerController.IsSourceTypeAvailable(UIImagePickerControllerSourceType.Camera);
-            }
-        }
-
-        public bool IsTakePhotoSupported
-        {
-            get
-            {
-                var availableCameraMedia = UIImagePickerController.AvailableMediaTypes(UIImagePickerControllerSourceType.Camera) ?? new string[0];
-                return availableCameraMedia.Contains(TypeImage);
-            }
-        }
-
-        public bool IsPickPhotoSupported
-        {
-            get
-            {
-                var avaialbleLibraryMedia = UIImagePickerController.AvailableMediaTypes(UIImagePickerControllerSourceType.PhotoLibrary) ?? new string[0];
-                return avaialbleLibraryMedia.Contains(TypeImage);
-            }
-        }
-
         public bool IsTakeVideoSupported
         {
             get
             {
                 var availableCameraMedia = UIImagePickerController.AvailableMediaTypes(UIImagePickerControllerSourceType.Camera) ?? new string[0];
-                return availableCameraMedia.Contains(TypeMovie);
+                return availableCameraMedia.Contains(UTType.Movie);
             }
         }
 
@@ -275,7 +278,7 @@ namespace MetaMediaPlugin
             get
             {
                 var avaialbleLibraryMedia = UIImagePickerController.AvailableMediaTypes(UIImagePickerControllerSourceType.PhotoLibrary) ?? new string[0];
-                return avaialbleLibraryMedia.Contains(TypeMovie);
+                return avaialbleLibraryMedia.Contains(UTType.Movie);
             }
         }
 

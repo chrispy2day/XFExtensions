@@ -105,6 +105,13 @@ namespace MetaMediaPlugin
             Finish();
         }
 
+        private static void OnMediaPicked (MediaPickedEventArgs e)
+        {
+            var picked = MediaPicked;
+            if (picked != null)
+                picked (null, e);
+        }
+
         #endregion
 
         #region Pick Photo Code
@@ -120,7 +127,10 @@ namespace MetaMediaPlugin
         private void HandlePickPhotoResults(int requestCode, Intent data)
         {
             var stream = Forms.Context.ContentResolver.OpenInputStream(data.Data);
-            var file = new MediaFile { MediaStream = stream };
+            var imageBytes = StreamHelpers.ReadFully(stream);
+            stream.Close();
+            stream.Dispose();
+            var file = new MediaFile { MediaBytes = imageBytes };
             OnMediaPicked(new MediaPickedEventArgs(requestCode, false, file));
         }
 
@@ -189,7 +199,7 @@ namespace MetaMediaPlugin
 
                 exif.SaveAttributes();
             } 
-            catch (Java.IO.IOException e) 
+            catch (Java.IO.IOException) 
             {
                 // location will not be available on this image, but continue
             } 
@@ -205,19 +215,11 @@ namespace MetaMediaPlugin
             SendBroadcast(mediaScanIntent);
             // return the file
             var stream = Forms.Context.ContentResolver.OpenInputStream(contentUri);
-            var file = new MediaFile { MediaStream = stream };
+            var imageBytes = StreamHelpers.ReadFully(stream);
+            stream.Close();
+            stream.Dispose();
+            var file = new MediaFile { MediaBytes = imageBytes };
             OnMediaPicked(new MediaPickedEventArgs(requestCode, false, file));
-        }
-
-        #endregion
-
-        #region Helpers
-
-        private static void OnMediaPicked (MediaPickedEventArgs e)
-        {
-            var picked = MediaPicked;
-            if (picked != null)
-                picked (null, e);
         }
 
         #endregion

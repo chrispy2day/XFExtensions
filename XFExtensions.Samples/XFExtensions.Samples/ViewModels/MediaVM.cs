@@ -18,24 +18,18 @@ namespace XFExtensions.Samples.ViewModels
             ChoosePhotoCommand = new Command(async (_) => 
                 {
                     Debug.WriteLine("Starting the Pick Photo Intent");
-                    using (var pic = await MetaMedia.Current.PickPhotoAsync())
-                    {
-                        Debug.WriteLine("Picture returned is {0}", (pic == null) ? "empty" : "valid");
-                        if (pic != null)
-                        {
-                            SelectedImage = ImageSource.FromStream(() => pic.MediaStream);
-                            pic.MediaStream.Dispose();
-                        }
-                    }
+                    var pic = await MetaMedia.Current.PickPhotoAsync();
+                    Debug.WriteLine("Picture returned is {0}", (pic == null) ? "empty" : "valid");
+                    if (pic != null)
+                        SelectedImage = ImageSource.FromStream(() => new MemoryStream(pic.MediaBytes));
                 }, 
                 o => MetaMedia.Current.IsPickPhotoSupported);
+            
             TakePhotoCommand = new Command(async (_) =>
                 {
-                    using (var pic = await MetaMedia.Current.TakePhotoAsync())
-                    {
-                        if (pic != null)
-                            SelectedImage = ImageSource.FromStream(() => pic.MediaStream);
-                    }
+                    var pic = await MetaMedia.Current.TakePhotoAsync();
+                    if (pic != null)
+                        SelectedImage = ImageSource.FromStream(() => new MemoryStream(pic.MediaBytes));
                 },
                 o => MetaMedia.Current.IsTakePhotoSupported);
         }
