@@ -38,6 +38,9 @@ namespace MetaMediaPlugin
 
         public async Task<MediaFile> PickPhotoAsync()
         {
+            if (!IsPickPhotoSupported)
+                throw new NotSupportedException();
+
             if (_tcs != null)
                 throw new InvalidOperationException("Only one operation can be active at a time.");
             _tcs = new TaskCompletionSource<MediaFile>();
@@ -53,7 +56,8 @@ namespace MetaMediaPlugin
                         // get the assetUrl for the selected image
                         assetUrlTCS.SetResult(dict[UIImagePickerController.ReferenceUrl] as NSUrl);
                     });
-                var file = await GetMediaFileForAssetAsync(await assetUrlTCS.Task);
+                var assetUrl = await assetUrlTCS.Task;
+                var file = await GetMediaFileForAssetAsync(assetUrl);
                 _tcs.SetResult(file);
             }
             var result = await _tcs.Task;
