@@ -4,6 +4,8 @@ using MetaMediaPlugin;
 using PropertyChanged;
 using Xamarin.Forms;
 using System.IO;
+using System;
+using MetaMediaPlugin.Abstractions;
 
 namespace XFExtensions.Samples.ViewModels
 {
@@ -18,10 +20,28 @@ namespace XFExtensions.Samples.ViewModels
             ChoosePhotoCommand = new Command(async (_) => 
                 {
                     Debug.WriteLine("Starting the Pick Photo Intent");
-                    var pic = await MetaMedia.Current.PickPhotoAsync();
+                    MediaFile pic = null;
+                    try
+                    {
+                        pic = await MetaMedia.Current.PickPhotoAsync();
+                    }
+                    catch(Exception e)
+                    {
+                        var message = e.Message;
+                    }
                     Debug.WriteLine("Picture returned is {0}", (pic == null) ? "empty" : "valid");
                     if (pic != null)
-                        SelectedImage = ImageSource.FromStream(() => new MemoryStream(pic.MediaBytes));
+                    {
+                        try
+                        {
+                            using (var stream = pic.GetPreviewStream())
+                                SelectedImage = ImageSource.FromStream(() => stream);
+                        }
+                        catch(Exception e)
+                        {
+                            var message = e.Message;
+                        }
+                    }
                 }, 
                 o => MetaMedia.Current.IsPickPhotoSupported);
             
@@ -29,7 +49,12 @@ namespace XFExtensions.Samples.ViewModels
                 {
                     var pic = await MetaMedia.Current.TakePhotoAsync();
                     if (pic != null)
-                        SelectedImage = ImageSource.FromStream(() => new MemoryStream(pic.MediaBytes));
+                    {
+                        using (var stream = pic.GetPreviewStream())
+                        {
+                            SelectedImage = ImageSource.FromStream(() => stream);
+                        }
+                    }
                 },
                 o => MetaMedia.Current.IsTakePhotoSupported);
         }

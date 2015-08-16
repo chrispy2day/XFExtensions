@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Android.App;
 using Android.Content;
+using Android.Graphics;
 using Android.Locations;
 using Android.Media;
 using Android.OS;
@@ -94,7 +95,7 @@ namespace MetaMediaPlugin
                         else if (_mediaAction == CreateMediaAction && _mediaType == PhotoMediaType)
                             await HandleTakePhotoResultsAsync(requestCode);
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         OnMediaPicked(new MediaPickedEventArgs(requestCode, e));
                     }
@@ -105,11 +106,11 @@ namespace MetaMediaPlugin
             Finish();
         }
 
-        private static void OnMediaPicked (MediaPickedEventArgs e)
+        private static void OnMediaPicked(MediaPickedEventArgs e)
         {
             var picked = MediaPicked;
             if (picked != null)
-                picked (null, e);
+                picked(null, e);
         }
 
         #endregion
@@ -126,11 +127,18 @@ namespace MetaMediaPlugin
 
         private void HandlePickPhotoResults(int requestCode, Intent data)
         {
-            var stream = Forms.Context.ContentResolver.OpenInputStream(data.Data);
-            var imageBytes = StreamHelpers.ReadFully(stream);
-            stream.Close();
-            stream.Dispose();
-            var file = new MediaFile { MediaBytes = imageBytes };
+            var path = data.Data.ToString();
+            var name = path.Substring(path.LastIndexOf("/"));
+            //var stream = Forms.Context.ContentResolver.OpenInputStream(data.Data);
+            var file = new MediaFile(name, path, 
+                           () =>
+                {
+                    return System.IO.File.OpenRead(path);
+                }, 
+                           () =>
+                {
+                    return System.IO.File.OpenRead(path);
+                });
             OnMediaPicked(new MediaPickedEventArgs(requestCode, false, file));
         }
 
@@ -171,35 +179,41 @@ namespace MetaMediaPlugin
             RequestCurrentLocation();
             var location = await _locationTCS.Task;
 
-            try 
+            try
             {
                 int num1Lat = (int)Math.Floor(location.Latitude);
                 int num2Lat = (int)Math.Floor((location.Latitude - num1Lat) * 60);
-                double num3Lat = (location.Latitude - ((double)num1Lat+((double)num2Lat/60))) * 3600000;
+                double num3Lat = (location.Latitude - ((double)num1Lat + ((double)num2Lat / 60))) * 3600000;
 
                 int num1Lon = (int)Math.Floor(location.Longitude);
                 int num2Lon = (int)Math.Floor((location.Longitude - num1Lon) * 60);
-                double num3Lon = (location.Longitude - ((double)num1Lon+((double)num2Lon/60))) * 3600000;
+                double num3Lon = (location.Longitude - ((double)num1Lon + ((double)num2Lon / 60))) * 3600000;
 
-                exif.SetAttribute(ExifInterface.TagGpsLatitude, num1Lat+"/1,"+num2Lat+"/1,"+num3Lat+"/1000");
-                exif.SetAttribute(ExifInterface.TagGpsLongitude, num1Lon+"/1,"+num2Lon+"/1,"+num3Lon+"/1000");
+                exif.SetAttribute(ExifInterface.TagGpsLatitude, num1Lat + "/1," + num2Lat + "/1," + num3Lat + "/1000");
+                exif.SetAttribute(ExifInterface.TagGpsLongitude, num1Lon + "/1," + num2Lon + "/1," + num3Lon + "/1000");
 
 
-                if (location.Latitude > 0) {
+                if (location.Latitude > 0)
+                {
                     exif.SetAttribute(ExifInterface.TagGpsLatitudeRef, "N"); 
-                } else {
+                }
+                else
+                {
                     exif.SetAttribute(ExifInterface.TagGpsLatitudeRef, "S");
                 }
 
-                if (location.Longitude > 0) {
+                if (location.Longitude > 0)
+                {
                     exif.SetAttribute(ExifInterface.TagGpsLongitudeRef, "E");    
-                } else {
+                }
+                else
+                {
                     exif.SetAttribute(ExifInterface.TagGpsLongitudeRef, "W");
                 }
 
                 exif.SaveAttributes();
-            } 
-            catch (Java.IO.IOException) 
+            }
+            catch (Java.IO.IOException)
             {
                 // location will not be available on this image, but continue
             } 
@@ -213,12 +227,31 @@ namespace MetaMediaPlugin
             Uri contentUri = Uri.FromFile(_file);
             mediaScanIntent.SetData(contentUri);
             SendBroadcast(mediaScanIntent);
+
+            // resize the image to the display to prevent memory overflow from crashing the app
+            int height = Resources.DisplayMetrics.HeightPixels;
+            int width = Resources.DisplayMetrics.WidthPixels;
+            var bitmap = _file.Path.LoadAndResizeBitmap(width, height);
+            if (bitmap == null)
+                OnMediaPicked(new MediaPickedEventArgs(requestCode, new Exception("Unable to generate preview image.")));
+            var previewStream = new MemoryStream();
+            bitmap.Compress(Bitmap.CompressFormat.Png, 0, previewStream);
+
             // return the file
             var stream = Forms.Context.ContentResolver.OpenInputStream(contentUri);
-            var imageBytes = StreamHelpers.ReadFully(stream);
-            stream.Close();
-            stream.Dispose();
-            var file = new MediaFile { MediaBytes = imageBytes };
+            var file = new MediaFile(
+                "Name", 
+                "Path", 
+                () => previewStream, 
+                () => stream, 
+                (disposing) =>
+                {
+                    if (disposing)
+                    {
+                        previewStream.Dispose();
+                        stream.Dispose();
+                    }
+                });
             OnMediaPicked(new MediaPickedEventArgs(requestCode, false, file));
         }
 

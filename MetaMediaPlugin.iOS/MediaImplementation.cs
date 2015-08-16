@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using MetaMediaPlugin.Abstractions;
 using UIKit;
 using System.Linq;
@@ -9,6 +10,7 @@ using CoreLocation;
 using Photos;
 using System.Runtime.InteropServices;
 using MobileCoreServices;
+using System.Diagnostics;
 
 namespace MetaMediaPlugin
 {
@@ -42,7 +44,7 @@ namespace MetaMediaPlugin
 
             var picker = new UIImagePickerController();
             picker.SourceType = UIImagePickerControllerSourceType.PhotoLibrary;
-            picker.MediaTypes = new string[] {UTType.Image};
+            picker.MediaTypes = new string[] { UTType.Image };
             picker.AllowsEditing = false;
             picker.Delegate = new MediaDelegate { InfoTask = mediaInfoTask };
             if (UIDevice.CurrentDevice.UserInterfaceIdiom == UIUserInterfaceIdiom.Pad)
@@ -54,37 +56,110 @@ namespace MetaMediaPlugin
             var info = await mediaInfoTask.Task;
             var assetUrl = info[UIImagePickerController.ReferenceUrl] as NSUrl;
 
-            return await GetMediaFileForAssetAsync(assetUrl);
+            // store the path and name
+            string filename;
+            try
+            {
+                filename = await GetAssetFileName(assetUrl);
+            }
+            catch
+            {
+                filename = "Unknown";
+            }
+
+            return new MediaFile(filename, 
+                                 assetUrl.AbsoluteString, 
+                                 async (path) => await GetFullFileStream(path), 
+                                 async (path) => await GetFullFileStream(path));
         }
 
-        private async Task<MediaFile> GetMediaFileForAssetAsync(NSUrl assetUrl)
+        private async Task<string> GetAssetFileName(NSUrl assetUrl)
         {
+            var nameTCS = new TaskCompletionSource<string>();
             if (UIDevice.CurrentDevice.CheckSystemVersion(8, 0))
             {
-                var assets = PHAsset.FetchAssets(new NSUrl[] { assetUrl }, null);
-                if (assets.Count == 0)
-                    throw new NullReferenceException("Unable to find the specified asset.");
-                var asset = (PHAsset)assets[0];
-                var imgMgr = new PHImageManager();
-
-                var imgTCS = new TaskCompletionSource<NSData>();
-                var imageName = "Unknown";
-                imgMgr.RequestImageData(asset, null, (data, uti, imageOrientation, dictionary) =>
+                using (var asset = GetAsset(assetUrl))
+                {
+                    using (var manager = new PHImageManager())
                     {
-                        var fileUrl = dictionary["PHImageFileURLKey"].ToString();
-                        if (!string.IsNullOrWhiteSpace(fileUrl))
+                        manager.RequestImageData(asset, 
+                            null, 
+                            (data, dataUti, orientation, info) => 
+                            {
+                                var imageName = "Unknown";
+                                var fileUrl = info["PHImageFileURLKey"].ToString();
+                                if (!string.IsNullOrWhiteSpace(fileUrl))
+                                {
+                                    var slash = fileUrl.LastIndexOf('/');
+                                    if (slash > -1)
+                                        imageName = fileUrl.Substring(slash + 1);
+                                }
+                                nameTCS.SetResult(imageName);
+                            });
+                    }
+                }
+            }
+            else
+            {
+                using (var library = new ALAssetsLibrary())
+                {
+                    library.AssetForUrl(assetUrl, 
+                        (asset) =>
                         {
-                            var slash = fileUrl.LastIndexOf('/');
-                            if (slash > -1)
-                                imageName = fileUrl.Substring(slash + 1);
-                        }
-                        imgTCS.SetResult(data);
-                    });
+                            nameTCS.SetResult(asset.DefaultRepresentation.Filename);
+                        },
+                        (error) =>
+                        {
+                            nameTCS.SetException(new Exception(error.DebugDescription));
+                        });
+                }
+            }
+            return await nameTCS.Task;
+        }
 
-                var imgData = await imgTCS.Task.ConfigureAwait(false);
-                var imgBytes = StreamHelpers.ReadFully(imgData.AsStream());
-                imgData.Dispose();
-                return new MediaFile { FileName = imageName, MediaBytes = imgBytes };
+        private static PHAsset GetAsset(NSUrl assetUrl)
+        {
+            var assets = PHAsset.FetchAssets(new NSUrl[] { assetUrl }, null);
+            if (assets.Count == 0)
+                throw new NullReferenceException("Unable to find the specified asset.");
+            var asset = (PHAsset)assets[0];
+            return asset;
+        }
+
+        public MediaFile FakeReturn()
+        {
+            return new MediaFile(string.Empty, 
+                                 string.Empty, 
+                                 (path) => new System.Threading.Tasks.Task<Stream>(() => new System.IO.MemoryStream()), 
+                                 (path) => new System.Threading.Tasks.Task<Stream>(() => new System.IO.MemoryStream()));
+        }
+
+        private static async Task<Stream> GetFullFileStream(string path)
+        {
+            Debug.WriteLine("GetFullFileStream: entered with path = {0}", path);
+            var streamCompletion = new TaskCompletionSource<Stream>();
+            var assetUrl = new NSUrl(path);
+            if (UIDevice.CurrentDevice.CheckSystemVersion(8, 0))
+            {
+                Debug.WriteLine("GetFullFileStream: iOS 8+ methods used");
+                using (var asset = GetAsset(assetUrl))
+                {
+                    var imageDataTCS = new TaskCompletionSource<NSData>();
+                    using (var manager = new PHImageManager())
+                    {
+                        manager.RequestImageData(
+                            asset, 
+                            null, 
+                            (data, dataUti, orientation, info) =>
+                            {
+                                Debug.WriteLine("GetFullFileStream: data is {0} bytes", data.Length);
+                                imageDataTCS.SetResult(data);
+                            });
+                    }
+                    var imgData = await imageDataTCS.Task.ConfigureAwait(false);
+                    Debug.WriteLine("GetFullFileStream: imgData is {0} bytes", imgData.Length);
+                    streamCompletion.SetResult(imgData.AsStream());
+                }
             }
             else
             {
@@ -98,22 +173,78 @@ namespace MetaMediaPlugin
                         (error) => dRepTCS.SetException(new Exception(error.LocalizedFailureReason))
                     );
                 }
-                var rep = await dRepTCS.Task.ConfigureAwait(false);
-
-                // now some really ugly code to copy that as a byte array
-                var size = (uint)rep.Size;
-                //byte[] imgData = new byte[size];
-                IntPtr buffer = Marshal.AllocHGlobal((int)size);
-                NSError bError;
-                rep.GetBytes(buffer, 0, (uint)size, out bError);
-                //Marshal.Copy(buffer, imgData, 0, imgData.Length);
-                var imgData = NSData.FromBytes(buffer, (uint)size);
-                Marshal.FreeHGlobal(buffer);
-                var imgBytes = StreamHelpers.ReadFully(imgData.AsStream());
-                imgData.Dispose();
-                return new MediaFile { FileName = rep.Filename, MediaBytes = imgBytes };
+                using (var rep = await dRepTCS.Task.ConfigureAwait(false))
+                {
+                    // now some really ugly code to copy that as a byte array
+                    var size = (uint)rep.Size;
+                    IntPtr buffer = Marshal.AllocHGlobal((int)size);
+                    NSError bError;
+                    rep.GetBytes(buffer, 0, (uint)size, out bError);
+                    var imgData = NSData.FromBytes(buffer, (uint)size);
+                    Marshal.FreeHGlobal(buffer);
+                    streamCompletion.SetResult(imgData.AsStream());
+                }
             }
+            return await streamCompletion.Task;
         }
+
+//        private async Task<MediaFile> GetMediaFileForAssetAsync(NSUrl assetUrl)
+//        {
+//            if (UIDevice.CurrentDevice.CheckSystemVersion(8, 0))
+//            {
+//                var assets = PHAsset.FetchAssets(new NSUrl[] { assetUrl }, null);
+//                if (assets.Count == 0)
+//                    throw new NullReferenceException("Unable to find the specified asset.");
+//                var asset = (PHAsset)assets[0];
+//                var imgMgr = new PHImageManager();
+//
+//                var imgTCS = new TaskCompletionSource<NSData>();
+//                var imageName = "Unknown";
+//                imgMgr.RequestImageData(asset, null, (data, uti, imageOrientation, dictionary) =>
+//                    {
+//                        var fileUrl = dictionary["PHImageFileURLKey"].ToString();
+//                        if (!string.IsNullOrWhiteSpace(fileUrl))
+//                        {
+//                            var slash = fileUrl.LastIndexOf('/');
+//                            if (slash > -1)
+//                                imageName = fileUrl.Substring(slash + 1);
+//                        }
+//                        imgTCS.SetResult(data);
+//                    });
+//
+//                var imgData = await imgTCS.Task.ConfigureAwait(false);
+//                var imgBytes = StreamHelpers.ReadFully(imgData.AsStream());
+//                imgData.Dispose();
+//                return new MediaFile { FileName = imageName, MediaBytes = imgBytes };
+//            }
+//            else
+//            {
+//                // get the default representation of the asset
+//                var dRepTCS = new TaskCompletionSource<ALAssetRepresentation>();
+//                using (var library = new ALAssetsLibrary())
+//                {
+//                    library.AssetForUrl(
+//                        assetUrl,
+//                        (asset) => dRepTCS.SetResult(asset.DefaultRepresentation),
+//                        (error) => dRepTCS.SetException(new Exception(error.LocalizedFailureReason))
+//                    );
+//                }
+//                var rep = await dRepTCS.Task.ConfigureAwait(false);
+//
+//                // now some really ugly code to copy that as a byte array
+//                var size = (uint)rep.Size;
+//                //byte[] imgData = new byte[size];
+//                IntPtr buffer = Marshal.AllocHGlobal((int)size);
+//                NSError bError;
+//                rep.GetBytes(buffer, 0, (uint)size, out bError);
+//                //Marshal.Copy(buffer, imgData, 0, imgData.Length);
+//                var imgData = NSData.FromBytes(buffer, (uint)size);
+//                Marshal.FreeHGlobal(buffer);
+//                var imgBytes = StreamHelpers.ReadFully(imgData.AsStream());
+//                imgData.Dispose();
+//                return new MediaFile { FileName = rep.Filename, MediaBytes = imgBytes };
+//            }
+//        }
 
         #endregion
 
@@ -151,7 +282,9 @@ namespace MetaMediaPlugin
 
             var info = await mediaInfoTask.Task;
             var assetLocation = await SavePhotoWithLocationAsync(info);
-            return await GetMediaFileForAssetAsync(assetLocation);
+
+            //return await GetMediaFileForAssetAsync(assetLocation);
+            return FakeReturn();
         }
 
         private async Task<NSUrl> SavePhotoWithLocationAsync(NSDictionary info)
@@ -246,10 +379,6 @@ namespace MetaMediaPlugin
         }
 
         #endregion
-
-
-
-
 
         #region IMedia implementation
 
