@@ -15,7 +15,9 @@ using com.refractored.monodroidtoolkit;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
 using XFExtensions.Controls.Abstractions;
+using XFExtensions.Controls.Droid;
 
+[assembly: ExportRenderer(typeof(ZoomImage), typeof(ZoomImageRenderer))]
 namespace XFExtensions.Controls.Droid
 {
     public class ZoomImageRenderer : ImageRenderer
@@ -53,13 +55,14 @@ namespace XFExtensions.Controls.Droid
                 }
                 else
                 {
+                    SetNativeControl(_normalImage);
+
                     // remove the scale image
                     if (_scaleImage != null)
                     {
                         _scaleImage.Dispose();
                         _scaleImage = null;
                     }
-                    SetNativeControl(_normalImage);
                 }
             }
         }
