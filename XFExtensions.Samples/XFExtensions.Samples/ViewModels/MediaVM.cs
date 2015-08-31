@@ -19,28 +19,11 @@ namespace XFExtensions.Samples.ViewModels
         {
             ChoosePhotoCommand = new Command(async (_) => 
                 {
-                    Debug.WriteLine("Starting the Pick Photo Intent");
-                    MediaFile pic = null;
-                    try
-                    {
-                        pic = await MetaMedia.Current.PickPhotoAsync();
-                    }
-                    catch(Exception e)
-                    {
-                        var message = e.Message;
-                    }
-                    Debug.WriteLine("Picture returned is {0}", (pic == null) ? "empty" : "valid");
+                    var pic = await MetaMedia.Current.PickPhotoAsync();
                     if (pic != null)
                     {
-                        try
-                        {
-                            using (var stream = pic.GetPreviewStream())
-                                SelectedImage = ImageSource.FromStream(() => stream);
-                        }
-                        catch(Exception e)
-                        {
-                            var message = e.Message;
-                        }
+                        var stream = await pic.GetPreviewFileStreamAsync();
+                        SelectedImage = ImageSource.FromStream(() => stream);
                     }
                 }, 
                 o => MetaMedia.Current.IsPickPhotoSupported);
@@ -50,10 +33,8 @@ namespace XFExtensions.Samples.ViewModels
                     var pic = await MetaMedia.Current.TakePhotoAsync();
                     if (pic != null)
                     {
-                        using (var stream = pic.GetPreviewStream())
-                        {
-                            SelectedImage = ImageSource.FromStream(() => stream);
-                        }
+                        var stream = await pic.GetPreviewFileStreamAsync();
+                        SelectedImage = ImageSource.FromStream(() => stream);
                     }
                 },
                 o => MetaMedia.Current.IsTakePhotoSupported);

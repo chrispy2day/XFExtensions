@@ -5,12 +5,12 @@ namespace MetaMediaPlugin
 {
     public class MetaMedia
     {
-        static Lazy<IMedia> Implementation = new Lazy<IMedia>(() => CreateMedia(), System.Threading.LazyThreadSafetyMode.PublicationOnly);
+        static Lazy<IMediaService> Implementation = new Lazy<IMediaService>(() => CreateMediaService(), System.Threading.LazyThreadSafetyMode.PublicationOnly);
 
         /// <summary>
         /// Current settings to use
         /// </summary>
-        public static IMedia Current
+        public static IMediaService Current
         {
             get
             {
@@ -23,7 +23,7 @@ namespace MetaMediaPlugin
             }
         }
 
-        static IMedia CreateMedia()
+        static IMediaService CreateMediaService()
         {
 #if PORTABLE
             return null;

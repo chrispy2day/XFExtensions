@@ -1,26 +1,16 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
-
 using Android.App;
 using Android.Content;
-using Android.Graphics;
 using Android.Locations;
 using Android.Media;
 using Android.OS;
 using Android.Provider;
-
 using Java.IO;
-
-using Xamarin.Forms;
-
-using MetaMediaPlugin.Abstractions;
-
-
 
 using Environment = Android.OS.Environment;
 using Uri = Android.Net.Uri;
-using File = Java.IO.File;
+using Android.Database;
 
 namespace MetaMediaPlugin
 {
@@ -127,19 +117,153 @@ namespace MetaMediaPlugin
 
         private void HandlePickPhotoResults(int requestCode, Intent data)
         {
-            var path = data.Data.ToString();
-            var name = path.Substring(path.LastIndexOf("/"));
+            string path = GetPath(data.Data);
+            //            if (Build.VERSION.SdkInt < BuildVersionCodes.Kitkat) // less than version 19 - KitKat
+            //                path = GetPathToImage(data.Data);
+            //            else
+            //                path = GetPathToImageApi19(data.Data);
+            if (string.IsNullOrWhiteSpace(path))
+                throw new InvalidOperationException("Unable to retrieve the path to the image.");
+
+            var name = path.Substring(path.LastIndexOf("/") + 1);
             //var stream = Forms.Context.ContentResolver.OpenInputStream(data.Data);
-            var file = new MediaFile(name, path, 
-                           () =>
-                {
-                    return System.IO.File.OpenRead(path);
-                }, 
-                           () =>
-                {
-                    return System.IO.File.OpenRead(path);
-                });
+            var file = new MediaFile { FileName = name, Path = path };
             OnMediaPicked(new MediaPickedEventArgs(requestCode, false, file));
+        }
+
+        // found API version variations at http://hmkcode.com/android-display-selected-image-and-its-real-path/
+        //        private string GetPathToImageApi19(Uri uri)
+        //        {
+        //            string path = uri.Path;
+        //            if (!DocumentsContract.IsDocumentUri(Application.Context, uri))
+        //                return path;
+        //            string wholeId = DocumentsContract.GetDocumentId(uri);
+        //            string id = wholeId.Split(new[] {':'})[1];
+        //            string[] column = {MediaStore.Images.Media.InterfaceConsts.Data};
+        //            string sel = MediaStore.Images.Media.InterfaceConsts.Id + "=?";
+        //            using (var cursor = ContentResolver.Query(MediaStore.Images.Media.ExternalContentUri, column, sel,
+        //                new string[] {id}, null))
+        //            {
+        //                int columnIndex = cursor.GetColumnIndex(column[0]);
+        //                if (cursor.MoveToFirst())
+        //                    path = cursor.GetString(columnIndex);
+        //                cursor.Close();
+        //            }
+        //            return path;
+        //        }
+        //
+        //        private string GetPathToImage(Uri uri)
+        //        {
+        //            string path = uri.Path;
+        //            // The projection contains the columns we want to return in our query.
+        //            string[] projection = new[] { MediaStore.Images.Media.InterfaceConsts.Data };
+        //            using (var cursor = ContentResolver.Query(uri, projection, null, null, null))
+        //            {
+        //                if (cursor != null && cursor.MoveToFirst())
+        //                {
+        //                    int columnIndex = cursor.GetColumnIndexOrThrow(Android.Provider.MediaStore.Images.Media.InterfaceConsts.Data);
+        //                    path = cursor.GetString(columnIndex);
+        //                }
+        //            }
+        //            return path;
+        //        }
+
+        // found this method at http://stackoverflow.com/questions/31715181/android-get-image-path
+        // and converted it for Xamarin.  Covers more options than the previous and seems to be working well.
+        public string GetPath(Uri uri)
+        {
+            bool isKitKat = Build.VERSION.SdkInt >= BuildVersionCodes.Kitkat;
+            // DocumentProvider
+            if (isKitKat && DocumentsContract.IsDocumentUri(Application.Context, uri))
+            {
+                // ExternalStorageProvider
+                if (IsExternalStorageDocument(uri))
+                {
+                    string docId = DocumentsContract.GetDocumentId(uri);
+                    string[] split = docId.Split(new char[] { ':' });
+                    string type = split[0];
+                    if (type.ToLower() == "primary")
+                        return Environment.ExternalStorageDirectory + "/" + split[1];
+                }
+                // DownloadsProvider
+                else if (IsDownloadsDocument(uri))
+                {
+                    string id = DocumentsContract.GetDocumentId(uri);
+                    Uri contentUri = ContentUris.WithAppendedId(Uri.Parse("content://downloads/public_downloads"), long.Parse(id));
+                    return GetDataColumn(Application.Context, contentUri, null, null);
+                }
+                // MediaProvider
+                else if (IsMediaDocument(uri))
+                {
+                    string docId = DocumentsContract.GetDocumentId(uri);
+                    string[] split = docId.Split(new char[] { ':' });
+                    string type = split[0];
+                    Uri contentUri = null;
+                    if (type == "image")
+                        contentUri = MediaStore.Images.Media.ExternalContentUri;
+                    else if (type == "video")
+                        contentUri = MediaStore.Video.Media.ExternalContentUri;
+                    else if (type == "audio")
+                        contentUri = MediaStore.Audio.Media.ExternalContentUri;
+                    string selection = "_id=?";
+                    string[] selectionArgs = new String[] { split[1] };
+                    return GetDataColumn(Application.Context, contentUri, selection, selectionArgs);
+                }
+            }
+            // MediaStore (and general)
+            else if (uri.Scheme.ToLower() == "content")
+            {
+                // Return the remote address
+                if (IsGooglePhotosUri(uri))
+                    return uri.LastPathSegment;
+                return GetDataColumn(Application.Context, uri, null, null);
+            }
+            // File
+            else if (uri.Scheme.ToLower() == "file")
+                return uri.Path;
+            return null;
+        }
+
+        public static string GetDataColumn(Context context, Uri uri, String selection, String[] selectionArgs)
+        {
+            ICursor cursor = null;
+            string column = "_data";
+            string[] projection = { column };
+            try
+            {
+                cursor = context.ContentResolver.Query(uri, projection, selection, selectionArgs, null);
+                if (cursor != null && cursor.MoveToFirst())
+                {
+                    int index = cursor.GetColumnIndexOrThrow(column);
+                    return cursor.GetString(index);
+                }
+            }
+            finally
+            {
+                if (cursor != null)
+                    cursor.Close();
+            }
+            return null;
+        }
+
+        public static bool IsExternalStorageDocument(Uri uri)
+        {
+            return uri.Authority == "com.android.externalstorage.documents";
+        }
+
+        public static bool IsDownloadsDocument(Uri uri)
+        {
+            return uri.Authority == "com.android.providers.downloads.documents";
+        }
+
+        public static bool IsMediaDocument(Uri uri)
+        {
+            return uri.Authority == "com.android.providers.media.documents";
+        }
+
+        public static bool IsGooglePhotosUri(Uri uri)
+        {
+            return uri.Authority == "com.google.android.apps.photos.content";
         }
 
         #endregion
@@ -150,7 +274,7 @@ namespace MetaMediaPlugin
         {
             try
             {
-                _dir = new File(Environment.GetExternalStoragePublicDirectory(Environment.DirectoryPictures), "FormsImagePicker");
+                _dir = new File(Environment.GetExternalStoragePublicDirectory(Environment.DirectoryPictures), "MobilePhotoTesting");
                 if (!_dir.Exists())
                     _dir.Mkdirs();
             }
@@ -195,7 +319,7 @@ namespace MetaMediaPlugin
 
                 if (location.Latitude > 0)
                 {
-                    exif.SetAttribute(ExifInterface.TagGpsLatitudeRef, "N"); 
+                    exif.SetAttribute(ExifInterface.TagGpsLatitudeRef, "N");
                 }
                 else
                 {
@@ -204,7 +328,7 @@ namespace MetaMediaPlugin
 
                 if (location.Longitude > 0)
                 {
-                    exif.SetAttribute(ExifInterface.TagGpsLongitudeRef, "E");    
+                    exif.SetAttribute(ExifInterface.TagGpsLongitudeRef, "E");
                 }
                 else
                 {
@@ -216,7 +340,7 @@ namespace MetaMediaPlugin
             catch (Java.IO.IOException)
             {
                 // location will not be available on this image, but continue
-            } 
+            }
         }
 
         private async Task HandleTakePhotoResultsAsync(int requestCode)
@@ -228,30 +352,10 @@ namespace MetaMediaPlugin
             mediaScanIntent.SetData(contentUri);
             SendBroadcast(mediaScanIntent);
 
-            // resize the image to the display to prevent memory overflow from crashing the app
-            int height = Resources.DisplayMetrics.HeightPixels;
-            int width = Resources.DisplayMetrics.WidthPixels;
-            var bitmap = _file.Path.LoadAndResizeBitmap(width, height);
-            if (bitmap == null)
-                OnMediaPicked(new MediaPickedEventArgs(requestCode, new Exception("Unable to generate preview image.")));
-            var previewStream = new MemoryStream();
-            bitmap.Compress(Bitmap.CompressFormat.Png, 0, previewStream);
-
             // return the file
-            var stream = Forms.Context.ContentResolver.OpenInputStream(contentUri);
-            var file = new MediaFile(
-                "Name", 
-                "Path", 
-                () => previewStream, 
-                () => stream, 
-                (disposing) =>
-                {
-                    if (disposing)
-                    {
-                        previewStream.Dispose();
-                        stream.Dispose();
-                    }
-                });
+            var path = _file.Path;
+            var name = path.Substring(path.LastIndexOf("/"));
+            var file = new MediaFile { FileName = name, Path = path };
             OnMediaPicked(new MediaPickedEventArgs(requestCode, false, file));
         }
 

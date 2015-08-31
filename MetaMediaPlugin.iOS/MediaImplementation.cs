@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using MetaMediaPlugin.Abstractions;
 using UIKit;
 using System.Linq;
@@ -7,249 +6,13 @@ using Foundation;
 using AssetsLibrary;
 using System.Threading.Tasks;
 using CoreLocation;
-using Photos;
-using System.Runtime.InteropServices;
 using MobileCoreServices;
 using System.Diagnostics;
 
 namespace MetaMediaPlugin
 {
-    public class MediaImplementation : IMedia
+    public class MediaImplementation : IMediaService
     {
-        static UIViewController GetViewController()
-        {
-            var vc = UIApplication.SharedApplication
-                .Windows.OrderByDescending(w => w.WindowLevel)
-                .FirstOrDefault(w => w.RootViewController != null)
-                .RootViewController;
-            while (vc.PresentedViewController != null)
-                vc = vc.PresentedViewController;
-            return vc;
-        }
-
-        #region Pick Photo
-
-        public bool IsPickPhotoSupported
-        {
-            get
-            {
-                var avaialbleLibraryMedia = UIImagePickerController.AvailableMediaTypes(UIImagePickerControllerSourceType.PhotoLibrary) ?? new string[0];
-                return avaialbleLibraryMedia.Contains(UTType.Image);
-            }
-        }
-
-        public async Task<MediaFile> PickPhotoAsync()
-        {
-            var mediaInfoTask = new TaskCompletionSource<NSDictionary>();
-
-            var picker = new UIImagePickerController();
-            picker.SourceType = UIImagePickerControllerSourceType.PhotoLibrary;
-            picker.MediaTypes = new string[] { UTType.Image };
-            picker.AllowsEditing = false;
-            picker.Delegate = new MediaDelegate { InfoTask = mediaInfoTask };
-            if (UIDevice.CurrentDevice.UserInterfaceIdiom == UIUserInterfaceIdiom.Pad)
-                picker.ModalInPopover = true;
-
-            var vc = GetViewController();
-            vc.PresentViewController(picker, true, null);
-
-            var info = await mediaInfoTask.Task;
-            var assetUrl = info[UIImagePickerController.ReferenceUrl] as NSUrl;
-
-            // store the path and name
-            string filename;
-            try
-            {
-                filename = await GetAssetFileName(assetUrl);
-            }
-            catch
-            {
-                filename = "Unknown";
-            }
-
-            return new MediaFile(filename, 
-                                 assetUrl.AbsoluteString, 
-                                 async (path) => await GetFullFileStream(path), 
-                                 async (path) => await GetFullFileStream(path));
-        }
-
-        private async Task<string> GetAssetFileName(NSUrl assetUrl)
-        {
-            var nameTCS = new TaskCompletionSource<string>();
-            if (UIDevice.CurrentDevice.CheckSystemVersion(8, 0))
-            {
-                using (var asset = GetAsset(assetUrl))
-                {
-                    using (var manager = new PHImageManager())
-                    {
-                        manager.RequestImageData(asset, 
-                            null, 
-                            (data, dataUti, orientation, info) => 
-                            {
-                                var imageName = "Unknown";
-                                var fileUrl = info["PHImageFileURLKey"].ToString();
-                                if (!string.IsNullOrWhiteSpace(fileUrl))
-                                {
-                                    var slash = fileUrl.LastIndexOf('/');
-                                    if (slash > -1)
-                                        imageName = fileUrl.Substring(slash + 1);
-                                }
-                                nameTCS.SetResult(imageName);
-                            });
-                    }
-                }
-            }
-            else
-            {
-                using (var library = new ALAssetsLibrary())
-                {
-                    library.AssetForUrl(assetUrl, 
-                        (asset) =>
-                        {
-                            nameTCS.SetResult(asset.DefaultRepresentation.Filename);
-                        },
-                        (error) =>
-                        {
-                            nameTCS.SetException(new Exception(error.DebugDescription));
-                        });
-                }
-            }
-            return await nameTCS.Task;
-        }
-
-        private static PHAsset GetAsset(NSUrl assetUrl)
-        {
-            var assets = PHAsset.FetchAssets(new NSUrl[] { assetUrl }, null);
-            if (assets.Count == 0)
-                throw new NullReferenceException("Unable to find the specified asset.");
-            var asset = (PHAsset)assets[0];
-            return asset;
-        }
-
-        public MediaFile FakeReturn()
-        {
-            return new MediaFile(string.Empty, 
-                                 string.Empty, 
-                                 (path) => new System.Threading.Tasks.Task<Stream>(() => new System.IO.MemoryStream()), 
-                                 (path) => new System.Threading.Tasks.Task<Stream>(() => new System.IO.MemoryStream()));
-        }
-
-        private static async Task<Stream> GetFullFileStream(string path)
-        {
-            Debug.WriteLine("GetFullFileStream: entered with path = {0}", path);
-            var streamCompletion = new TaskCompletionSource<Stream>();
-            var assetUrl = new NSUrl(path);
-            if (UIDevice.CurrentDevice.CheckSystemVersion(8, 0))
-            {
-                Debug.WriteLine("GetFullFileStream: iOS 8+ methods used");
-                using (var asset = GetAsset(assetUrl))
-                {
-                    var imageDataTCS = new TaskCompletionSource<NSData>();
-                    using (var manager = new PHImageManager())
-                    {
-                        manager.RequestImageData(
-                            asset, 
-                            null, 
-                            (data, dataUti, orientation, info) =>
-                            {
-                                Debug.WriteLine("GetFullFileStream: data is {0} bytes", data.Length);
-                                imageDataTCS.SetResult(data);
-                            });
-                    }
-                    var imgData = await imageDataTCS.Task.ConfigureAwait(false);
-                    Debug.WriteLine("GetFullFileStream: imgData is {0} bytes", imgData.Length);
-                    streamCompletion.SetResult(imgData.AsStream());
-                }
-            }
-            else
-            {
-                // get the default representation of the asset
-                var dRepTCS = new TaskCompletionSource<ALAssetRepresentation>();
-                using (var library = new ALAssetsLibrary())
-                {
-                    library.AssetForUrl(
-                        assetUrl,
-                        (asset) => dRepTCS.SetResult(asset.DefaultRepresentation),
-                        (error) => dRepTCS.SetException(new Exception(error.LocalizedFailureReason))
-                    );
-                }
-                using (var rep = await dRepTCS.Task.ConfigureAwait(false))
-                {
-                    // now some really ugly code to copy that as a byte array
-                    var size = (uint)rep.Size;
-                    IntPtr buffer = Marshal.AllocHGlobal((int)size);
-                    NSError bError;
-                    rep.GetBytes(buffer, 0, (uint)size, out bError);
-                    var imgData = NSData.FromBytes(buffer, (uint)size);
-                    Marshal.FreeHGlobal(buffer);
-                    streamCompletion.SetResult(imgData.AsStream());
-                }
-            }
-            return await streamCompletion.Task;
-        }
-
-//        private async Task<MediaFile> GetMediaFileForAssetAsync(NSUrl assetUrl)
-//        {
-//            if (UIDevice.CurrentDevice.CheckSystemVersion(8, 0))
-//            {
-//                var assets = PHAsset.FetchAssets(new NSUrl[] { assetUrl }, null);
-//                if (assets.Count == 0)
-//                    throw new NullReferenceException("Unable to find the specified asset.");
-//                var asset = (PHAsset)assets[0];
-//                var imgMgr = new PHImageManager();
-//
-//                var imgTCS = new TaskCompletionSource<NSData>();
-//                var imageName = "Unknown";
-//                imgMgr.RequestImageData(asset, null, (data, uti, imageOrientation, dictionary) =>
-//                    {
-//                        var fileUrl = dictionary["PHImageFileURLKey"].ToString();
-//                        if (!string.IsNullOrWhiteSpace(fileUrl))
-//                        {
-//                            var slash = fileUrl.LastIndexOf('/');
-//                            if (slash > -1)
-//                                imageName = fileUrl.Substring(slash + 1);
-//                        }
-//                        imgTCS.SetResult(data);
-//                    });
-//
-//                var imgData = await imgTCS.Task.ConfigureAwait(false);
-//                var imgBytes = StreamHelpers.ReadFully(imgData.AsStream());
-//                imgData.Dispose();
-//                return new MediaFile { FileName = imageName, MediaBytes = imgBytes };
-//            }
-//            else
-//            {
-//                // get the default representation of the asset
-//                var dRepTCS = new TaskCompletionSource<ALAssetRepresentation>();
-//                using (var library = new ALAssetsLibrary())
-//                {
-//                    library.AssetForUrl(
-//                        assetUrl,
-//                        (asset) => dRepTCS.SetResult(asset.DefaultRepresentation),
-//                        (error) => dRepTCS.SetException(new Exception(error.LocalizedFailureReason))
-//                    );
-//                }
-//                var rep = await dRepTCS.Task.ConfigureAwait(false);
-//
-//                // now some really ugly code to copy that as a byte array
-//                var size = (uint)rep.Size;
-//                //byte[] imgData = new byte[size];
-//                IntPtr buffer = Marshal.AllocHGlobal((int)size);
-//                NSError bError;
-//                rep.GetBytes(buffer, 0, (uint)size, out bError);
-//                //Marshal.Copy(buffer, imgData, 0, imgData.Length);
-//                var imgData = NSData.FromBytes(buffer, (uint)size);
-//                Marshal.FreeHGlobal(buffer);
-//                var imgBytes = StreamHelpers.ReadFully(imgData.AsStream());
-//                imgData.Dispose();
-//                return new MediaFile { FileName = rep.Filename, MediaBytes = imgBytes };
-//            }
-//        }
-
-        #endregion
-
-        #region Take Photo
-
         public bool IsCameraAvailable
         {
             get
@@ -267,24 +30,71 @@ namespace MetaMediaPlugin
             }
         }
 
-        public async Task<MediaFile> TakePhotoAsync()
+        public bool IsPickPhotoSupported
         {
+            get
+            {
+                var avaialbleLibraryMedia = UIImagePickerController.AvailableMediaTypes(UIImagePickerControllerSourceType.PhotoLibrary) ?? new string[0];
+                return avaialbleLibraryMedia.Contains(UTType.Image);
+            }
+        }
+
+        public async Task<IMediaFile> PickPhotoAsync()
+        {
+            Debug.WriteLine("PickPhotoAsync: starting");
+            // setup a task to get the results back from the delegate
             var mediaInfoTask = new TaskCompletionSource<NSDictionary>();
 
+            // setup a UI Picker to show photos
+            var picker = new UIImagePickerController();
+            picker.SourceType = UIImagePickerControllerSourceType.PhotoLibrary;
+            picker.MediaTypes = new string[] { UTType.Image };
+            picker.AllowsEditing = false;
+            picker.Delegate = new MediaDelegate { InfoTask = mediaInfoTask };
+            // iPad should display the picker in a popover
+            if (UIDevice.CurrentDevice.UserInterfaceIdiom == UIUserInterfaceIdiom.Pad)
+                picker.ModalInPopover = true;
+            var vc = GetViewController();
+            Debug.WriteLine("PickPhotoAsync: displaying photo picker");
+            vc.PresentViewController(picker, true, null);
+            // wait to get the results back
+            Debug.WriteLine("PickPhotoAsync: waiting for selected photo");
+            var info = await mediaInfoTask.Task;
+            var assetUrl = info[UIImagePickerController.ReferenceUrl] as NSUrl;
+            Debug.WriteLine("PickPhotoAsync: photo selected {0}", assetUrl);
+            var mediaFile = new MediaFile {Path = assetUrl.ToString()};
+            Debug.WriteLine("PickPhotoAsync: returning created media file");
+            return mediaFile;
+        }
+
+        public async Task<IMediaFile> TakePhotoAsync()
+        {
+            Debug.WriteLine("TakePhotoAsync: starting");
+            // setup a task to get the results back from the delegate
+            var mediaInfoTask = new TaskCompletionSource<NSDictionary>();
+
+            // setup a UI Picker to display camera
             var picker = new UIImagePickerController();
             picker.SourceType = UIImagePickerControllerSourceType.Camera;
-            picker.MediaTypes = new string[] {UTType.Image};
+            picker.MediaTypes = new string[] { UTType.Image };
             picker.AllowsEditing = false;
             picker.Delegate = new MediaDelegate { InfoTask = mediaInfoTask };
 
+            // display the picker
+            Debug.WriteLine("TakePhotoAsync: displaying the camera");
             var vc = GetViewController();
             vc.PresentViewController(picker, true, null);
 
+            // wait for a result
+            Debug.WriteLine("TakePhotoAsync: waiting for photo from camera");
             var info = await mediaInfoTask.Task;
             var assetLocation = await SavePhotoWithLocationAsync(info);
 
-            //return await GetMediaFileForAssetAsync(assetLocation);
-            return FakeReturn();
+            // create and return a media file
+            Debug.WriteLine("TakePhotoAsync: picture taken & stored at {0}", assetLocation);
+            var mediaFile = new MediaFile {Path = assetLocation.ToString()};
+            Debug.WriteLine("TakePhotoAsync: returning created media file");
+            return mediaFile;
         }
 
         private async Task<NSUrl> SavePhotoWithLocationAsync(NSDictionary info)
@@ -378,40 +188,16 @@ namespace MetaMediaPlugin
             return gpsData;
         }
 
-        #endregion
-
-        #region IMedia implementation
-
-
-        public System.Threading.Tasks.Task<MediaFile> PickVideoAsync()
+        static UIViewController GetViewController()
         {
-            throw new NotImplementedException();
+            var vc = UIApplication.SharedApplication
+                .Windows.OrderByDescending(w => w.WindowLevel)
+                .FirstOrDefault(w => w.RootViewController != null)
+                .RootViewController;
+            while (vc.PresentedViewController != null)
+                vc = vc.PresentedViewController;
+            return vc;
         }
-
-        public System.Threading.Tasks.Task<MediaFile> TakeVideoAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsTakeVideoSupported
-        {
-            get
-            {
-                var availableCameraMedia = UIImagePickerController.AvailableMediaTypes(UIImagePickerControllerSourceType.Camera) ?? new string[0];
-                return availableCameraMedia.Contains(UTType.Movie);
-            }
-        }
-
-        public bool IsPickVideoSupported
-        {
-            get
-            {
-                var avaialbleLibraryMedia = UIImagePickerController.AvailableMediaTypes(UIImagePickerControllerSourceType.PhotoLibrary) ?? new string[0];
-                return avaialbleLibraryMedia.Contains(UTType.Movie);
-            }
-        }
-
-        #endregion
     }
 }
 

@@ -41,6 +41,7 @@
     <Compile Include="..\MetaMediaPlugin\MetaMedia.cs">
       <Link>MetaMedia.cs</Link>
     </Compile>
+    <Compile Include="MediaFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MediaImplementation.cs" />
     <Compile Include="MediaDelegate.cs" />

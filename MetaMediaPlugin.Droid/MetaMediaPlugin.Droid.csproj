@@ -62,12 +62,12 @@
     <Compile Include="..\MetaMediaPlugin\MetaMedia.cs">
       <Link>MetaMedia.cs</Link>
     </Compile>
+    <Compile Include="MediaFile.cs" />
     <Compile Include="MediaImplementation.cs" />
     <Compile Include="MediaPickedEventArgs.cs" />
     <Compile Include="MetaMediaActivity.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="BitmapHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />

@@ -1,23 +1,20 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Android.Content;
 using Android.Content.PM;
-using Android.Provider;
 using MetaMediaPlugin.Abstractions;
 
 namespace MetaMediaPlugin
 {
-    public class MediaImplementation : IMedia
+    public class MediaImplementation : IMediaService
     {
-        private int _requestId = 0;
         private readonly Context _context;
+        private int _requestId = 0;
         private TaskCompletionSource<MediaFile> _tcs;
 
         public MediaImplementation()
         {
             _context = Android.App.Application.Context;
-            IsCameraAvailable = _context.PackageManager.HasSystemFeature(PackageManager.FeatureCamera);
             MetaMediaActivity.MediaPicked += (sender, e) =>
             {
                 if (e.Cancelled)
@@ -29,11 +26,33 @@ namespace MetaMediaPlugin
             };
         }
 
-        public bool IsCameraAvailable { get; private set; }
+        #region IMediaService implementation
+
+        public bool IsCameraAvailable
+        {
+            get
+            {
+                return _context.PackageManager.HasSystemFeature(PackageManager.FeatureCamera);
+            }
+        }
+
         public bool IsTakePhotoSupported { get { return IsCameraAvailable; } }
-        public bool IsPickPhotoSupported { get { return true;  } }
-        public bool IsTakeVideoSupported { get { return IsCameraAvailable; } }
-        public bool IsPickVideoSupported { get { return true; } }
+
+        public bool IsPickPhotoSupported { get { return true; } }
+
+        public async Task<IMediaFile> PickPhotoAsync()
+        {
+            return await GetMediaAsync(MetaMediaActivity.PhotoMediaType, MetaMediaActivity.SelectMediaAction);
+        }
+
+        public async Task<IMediaFile> TakePhotoAsync()
+        {
+            return await GetMediaAsync(MetaMediaActivity.PhotoMediaType, MetaMediaActivity.CreateMediaAction);
+        }
+
+        #endregion
+
+        #region Shared
 
         private Intent CreateMetaMediaIntent(string mediaType, string mediaAction)
         {
@@ -59,24 +78,6 @@ namespace MetaMediaPlugin
             return media;
         }
 
-        public Task<MediaFile> PickPhotoAsync()
-        {
-            return GetMediaAsync(MetaMediaActivity.PhotoMediaType, MetaMediaActivity.SelectMediaAction);
-        }
-
-        public Task<MediaFile> TakePhotoAsync()
-        {
-            return GetMediaAsync(MetaMediaActivity.PhotoMediaType, MetaMediaActivity.CreateMediaAction);
-        }
-
-        public Task<MediaFile> PickVideoAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<MediaFile> TakeVideoAsync()
-        {
-            throw new NotImplementedException();
-        }
+        #endregion
     }
 }
