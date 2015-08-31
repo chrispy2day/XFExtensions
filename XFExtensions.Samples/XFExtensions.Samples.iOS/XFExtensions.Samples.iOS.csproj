@@ -109,14 +109,6 @@
       <Name>XFExtensions.Samples</Name>
       <Project>{BB5057AE-1DCF-417F-8860-C27C028D43F6}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\MetaMediaPlugin.Abstractions\MetaMediaPlugin.Abstractions.csproj">
-      <Project>{23BB238F-CCEC-47C1-96C4-F5249DE893EA}</Project>
-      <Name>MetaMediaPlugin.Abstractions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\MetaMediaPlugin.iOS\MetaMediaPlugin.iOS.csproj">
-      <Project>{D4D32B4C-A7C2-4503-BB27-D49FA5F4C41C}</Project>
-      <Name>MetaMediaPlugin.iOS</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BundleResource Include="Resources\Default-568h%402x.png" />

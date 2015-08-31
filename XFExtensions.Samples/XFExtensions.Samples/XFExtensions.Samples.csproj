@@ -80,14 +80,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\MetaMediaPlugin.Abstractions\MetaMediaPlugin.Abstractions.csproj">
-      <Project>{23BB238F-CCEC-47C1-96C4-F5249DE893EA}</Project>
-      <Name>MetaMediaPlugin.Abstractions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\MetaMediaPlugin\MetaMediaPlugin.csproj">
-      <Project>{8CEA8543-CAB6-485A-954C-6FA81D280E97}</Project>
-      <Name>MetaMediaPlugin</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\XFExtensions.Controls\XFExtensions.Controls.Abstractions\XFExtensions.Controls.Abstractions.csproj">
       <Project>{14C534B6-1984-41A9-A384-D3A5508588E3}</Project>
       <Name>XFExtensions.Controls.Abstractions</Name>
