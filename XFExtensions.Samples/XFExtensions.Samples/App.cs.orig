@@ -1,4 +1,4 @@
-using Xamarin.Forms;
+﻿using Xamarin.Forms;
 using XFExtensions.Samples.Views;
 
 namespace XFExtensions.Samples
@@ -7,7 +7,11 @@ namespace XFExtensions.Samples
     {
         public App()
         {
+<<<<<<< HEAD
+            MainPage = new ZoomPage();
+=======
             MainPage = new MediaPage();
+>>>>>>> feature/MetaMediaPlugin
         }
 
         protected override void OnStart()
