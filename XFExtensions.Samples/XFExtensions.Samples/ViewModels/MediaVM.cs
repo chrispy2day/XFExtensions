@@ -15,15 +15,25 @@ namespace XFExtensions.Samples.ViewModels
         public ICommand ChoosePhotoCommand { get; private set; }
         public ICommand TakePhotoCommand { get; private set; }
 
+        private Stream _previewStream;
+        private Stream _fullStream;
+
         public MediaVM()
         {
+            FullStreamLength = PreviewStreamLength = "Unknown - no image selected yet.";
             ChoosePhotoCommand = new Command(async (_) => 
                 {
                     var pic = await MetaMedia.Current.PickPhotoAsync();
                     if (pic != null)
                     {
-                        var stream = await pic.GetPreviewFileStreamAsync();
-                        SelectedImage = ImageSource.FromStream(() => stream);
+                        _previewStream = await pic.GetPreviewFileStreamAsync();
+                        PreviewStreamLength = CalculateLength(_previewStream.Length);
+                        SelectedImage = ImageSource.FromStream(() => _previewStream); // image source will dispose of stream when it's done
+
+                        using (var stream = await pic.GetFullFileStreamAsync())
+                        {
+                            FullStreamLength = CalculateLength(stream.Length);
+                        }
                     }
                 }, 
                 o => MetaMedia.Current.IsPickPhotoSupported);
@@ -33,13 +43,52 @@ namespace XFExtensions.Samples.ViewModels
                     var pic = await MetaMedia.Current.TakePhotoAsync();
                     if (pic != null)
                     {
-                        var stream = await pic.GetPreviewFileStreamAsync();
-                        SelectedImage = ImageSource.FromStream(() => stream);
+                        _previewStream = await pic.GetPreviewFileStreamAsync();
+                        PreviewStreamLength = CalculateLength(_previewStream.Length);
+                        SelectedImage = ImageSource.FromStream(() => _previewStream); // image source will dispose of stream when it's done
+                        using (var stream = await pic.GetFullFileStreamAsync())
+                        {
+                            FullStreamLength = CalculateLength(stream.Length);
+                        }
                     }
                 },
                 o => MetaMedia.Current.IsTakePhotoSupported);
         }
 
+        private string CalculateLength(long length)
+        {
+            var scaledLength = (double)length;
+            var scale = 0;
+            while (scaledLength > 1024)
+            {
+                scaledLength /= 1024;
+                scale++;
+            }
+            string unit;
+            switch (scale)
+            {
+                case 0:
+                    unit = "B";
+                    break;
+                case 1:
+                    unit = "KB";
+                    break;
+                case 2:
+                    unit = "MB";
+                    break;
+                case 3:
+                    unit = "GB";
+                    break;
+                default:
+                    unit = "Err - too big";
+                    break;
+            }
+            return string.Format("{0:F2} {1}", scaledLength, unit);
+        }
+
         public ImageSource SelectedImage { get; set; }
+
+        public string PreviewStreamLength { get; set; }
+        public string FullStreamLength {get; set; }
     }
 }

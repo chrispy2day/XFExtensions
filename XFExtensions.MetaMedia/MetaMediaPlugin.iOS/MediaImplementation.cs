@@ -148,7 +148,7 @@ namespace MetaMediaPlugin
                     if (locationArgs.Locations.Length > 0)
                     {
                         _locationManager.StopUpdatingLocation();
-                        _locationTCS.SetResult(locationArgs.Locations[locationArgs.Locations.Length - 1]);
+                        _locationTCS.TrySetResult(locationArgs.Locations[locationArgs.Locations.Length - 1]);
                     }
                 };
             // start location monitoring

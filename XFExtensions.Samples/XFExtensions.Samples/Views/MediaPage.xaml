@@ -15,6 +15,10 @@
 			   HeightRequest="200" 
 			   WidthRequest="200" 
 			   VerticalOptions="StartAndExpand" />
+	   	<Label Text="Preview Stream Size:"/>
+		<Label Text="{Binding PreviewStreamLength}" />
+		<Label Text="Full Stream Size:"/>
+		<Label Text="{Binding FullStreamLength}" />
         <Button Text="Choose a Photo" 
         		Command="{Binding ChoosePhotoCommand}"
         		VerticalOptions="End"

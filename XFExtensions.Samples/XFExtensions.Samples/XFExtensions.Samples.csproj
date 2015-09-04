@@ -92,11 +92,11 @@
       <Name>XFExtensions.Controls.Abstractions</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\XFExtensions.MetaMedia\MetaMediaPlugin.Abstractions\MetaMediaPlugin.Abstractions.csproj">
-      <Project>{23bb238f-ccec-47c1-96c4-f5249de893ea}</Project>
+      <Project>{23BB238F-CCEC-47C1-96C4-F5249DE893EA}</Project>
       <Name>MetaMediaPlugin.Abstractions</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\XFExtensions.MetaMedia\MetaMediaPlugin\MetaMediaPlugin.csproj">
-      <Project>{8cea8543-cab6-485a-954c-6fa81d280e97}</Project>
+      <Project>{8CEA8543-CAB6-485A-954C-6FA81D280E97}</Project>
       <Name>MetaMediaPlugin</Name>
     </ProjectReference>
   </ItemGroup>
