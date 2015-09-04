@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -106,6 +106,16 @@
       <Name>XFExtensions.Controls.iOSUnified</Name>
       <IsAppExtension>False</IsAppExtension>
       <IsWatchApp>False</IsWatchApp>
+    </ProjectReference>
+    <ProjectReference Include="..\..\XFExtensions.MetaMedia\MetaMediaPlugin.Abstractions\MetaMediaPlugin.Abstractions.csproj">
+      <Project>{23bb238f-ccec-47c1-96c4-f5249de893ea}</Project>
+      <Name>MetaMediaPlugin.Abstractions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\XFExtensions.MetaMedia\MetaMediaPlugin.iOS\MetaMediaPlugin.iOS.csproj">
+      <Project>{d4d32b4c-a7c2-4503-bb27-d49fa5f4c41c}</Project>
+      <Name>MetaMediaPlugin.iOS</Name>
+      <IsAppExtension>false</IsAppExtension>
+      <IsWatchApp>false</IsWatchApp>
     </ProjectReference>
     <ProjectReference Include="..\XFExtensions.Samples\XFExtensions.Samples.csproj">
       <Name>XFExtensions.Samples</Name>

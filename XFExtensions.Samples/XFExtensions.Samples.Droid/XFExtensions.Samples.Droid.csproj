@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -103,6 +103,14 @@
     <ProjectReference Include="..\..\XFExtensions.Controls\XFExtensions.Controls.Droid\XFExtensions.Controls.Droid.csproj">
       <Project>{AD2D2DB4-E781-4CF1-9B62-3AAD264F196D}</Project>
       <Name>XFExtensions.Controls.Droid</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\XFExtensions.MetaMedia\MetaMediaPlugin.Abstractions\MetaMediaPlugin.Abstractions.csproj">
+      <Project>{23bb238f-ccec-47c1-96c4-f5249de893ea}</Project>
+      <Name>MetaMediaPlugin.Abstractions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\XFExtensions.MetaMedia\MetaMediaPlugin.Droid\MetaMediaPlugin.Droid.csproj">
+      <Project>{93e73d12-da3b-4d2d-8c9a-d48480137e06}</Project>
+      <Name>MetaMediaPlugin.Droid</Name>
     </ProjectReference>
     <ProjectReference Include="..\XFExtensions.Samples\XFExtensions.Samples.csproj">
       <Name>XFExtensions.Samples</Name>

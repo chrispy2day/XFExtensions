@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -91,9 +91,23 @@
       <Project>{14C534B6-1984-41A9-A384-D3A5508588E3}</Project>
       <Name>XFExtensions.Controls.Abstractions</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\XFExtensions.MetaMedia\MetaMediaPlugin.Abstractions\MetaMediaPlugin.Abstractions.csproj">
+      <Project>{23bb238f-ccec-47c1-96c4-f5249de893ea}</Project>
+      <Name>MetaMediaPlugin.Abstractions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\XFExtensions.MetaMedia\MetaMediaPlugin\MetaMediaPlugin.csproj">
+      <Project>{8cea8543-cab6-485a-954c-6fa81d280e97}</Project>
+      <Name>MetaMediaPlugin</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Views\EchoGesturesPage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Views\MediaPage.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
