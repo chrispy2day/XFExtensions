@@ -11,7 +11,6 @@ using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
-using com.refractored.monodroidtoolkit;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
 using XFExtensions.Controls.Abstractions;
@@ -51,6 +50,7 @@ namespace XFExtensions.Controls.Droid
                     // create a scale image if one doesn't already exist
                     if (_scaleImage == null)
                         _scaleImage = await CreateScaleView(zoomImage.Source);
+                    _scaleImage.MaxScale = (float)zoomImage.MaxZoom;
                     SetNativeControl(_scaleImage);
                 }
                 else
@@ -64,6 +64,11 @@ namespace XFExtensions.Controls.Droid
                         _scaleImage = null;
                     }
                 }
+            }
+            else if (e.PropertyName == ZoomImage.MaxZoomProperty.PropertyName)
+            {
+                if (zoomImage.ZoomEnabled)
+                    _scaleImage.MaxScale = (float)zoomImage.MaxZoom;
             }
         }
 
