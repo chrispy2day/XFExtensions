@@ -18,11 +18,11 @@ namespace XFExtensions.Samples
         {
             base.OnAppearing();
 
-            while (enableButton.Height < 10)
-                await Task.Delay(50);
-            var underButton = enableButton.Y + enableButton.Height + 10;
-            zoomableImage.HeightRequest = this.Height - underButton;
-            zoomableImage.WidthRequest = this.Width;
+//            while (enableButton.Height < 10)
+//                await Task.Delay(50);
+//            var underButton = enableButton.Y + enableButton.Height + 10;
+//            zoomableImage.HeightRequest = this.Height - underButton;
+//            zoomableImage.WidthRequest = this.Width;
         }
     }
 }

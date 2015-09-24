@@ -13,14 +13,21 @@
 	<ContentPage.Content>
 		<StackLayout HorizontalOptions="CenterAndExpand" 
 					 VerticalOptions="StartAndExpand">
-			 <Button x:Name="enableButton" Text="{Binding ToggleZoomText}" HorizontalOptions="CenterAndExpand" Command="{Binding ToggleZoomCommand}" />
-			 <controls:ZoomImage 
-			 	x:Name="zoomableImage"
+
+			 <!-- Here's using the custom zoom image -->
+			 <Button Text="{Binding ToggleZoomText}" HorizontalOptions="CenterAndExpand" Command="{Binding ToggleZoomCommand}" />
+			 <controls:ZoomImage
 			 	Source="http://yeahsoup.s3-us-west-2.amazonaws.com/wp-content/uploads/2015/05/img1114.jpg"
 		 		HorizontalOptions="CenterAndExpand" 
 		 		VerticalOptions="CenterAndExpand"
 		 		ZoomEnabled="{Binding EnableZoom}"
 		 		Aspect="AspectFill" />
+
+	 		<!-- Here's using a regular Image -->
+	 		<!--<Image Source="http://yeahsoup.s3-us-west-2.amazonaws.com/wp-content/uploads/2015/05/img1114.jpg"
+	 			   HorizontalOptions="CenterAndExpand" 
+	 			   VerticalOptions="CenterAndExpand"
+	 			   Aspect="AspectFill"/>-->
 		</StackLayout>
 	</ContentPage.Content>
 </ContentPage>
