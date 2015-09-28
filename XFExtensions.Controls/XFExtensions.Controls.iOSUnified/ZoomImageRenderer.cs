@@ -7,41 +7,85 @@ using UIKit;
 using CoreGraphics;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Foundation;
 
 [assembly: ExportRenderer(typeof(ZoomImage), typeof(ZoomImageRenderer))]
 namespace XFExtensions.Controls.iOSUnified
 {
     public class ZoomImageRenderer : ViewRenderer<ZoomImage, UIScrollView>
     {
+        private ImageRenderer _imageRenderer;
+
         protected override void OnElementChanged(ElementChangedEventArgs<ZoomImage> e)
         {
             if (this.Control == null && e.NewElement != null)
             {
                 // setup the control to be a scroll view with an image in it
                 var zoomImage = e.NewElement;
-                var imageRenderer = new ImageRenderer();
-                imageRenderer.SetElement(zoomImage);
-                var imageView = imageRenderer.Control;
+                var webSource = (UriImageSource) zoomImage.Source;
+
+                // for testing purposes create the image view myself
+                //var url = webSource.Uri.ToString();
+                //var imageView = new UIImageView(UIImage.LoadFromData(NSData.FromUrl(NSUrl.FromString(url))));
+
+
+                _imageRenderer = new ImageRenderer();
+                _imageRenderer.SetElement(zoomImage);
+                var imageView = _imageRenderer.Control;
                 imageView.AutoresizingMask = UIViewAutoresizing.All;
-                var scroll = new UIScrollView(CGRect.Empty)
-                    {
-                        ClipsToBounds = true
-                    };
+                var scroll = new UIScrollView
+                {
+                    ClipsToBounds = true,
+                    BackgroundColor = UIColor.Red
+                };
                 scroll.AddSubview(imageView);
-                SetupZoom(scroll, zoomImage);
+                
+                //var scroll = new UIScrollView { BackgroundColor = UIColor.Red, AutoresizingMask = UIViewAutoresizing.All };
+                //scroll.ContentSize = imageView.Image.Size;
+                //scroll.AddSubview(imageView);
+                //scroll.MinimumZoomScale = 1;
+                //scroll.MaximumZoomScale = 5;
+                //scroll.ViewForZoomingInScrollView += view => imageView;
+                
                 this.SetNativeControl(scroll);
             }
+
             base.OnElementChanged(e);
         }
 
-        private void SetupZoom(UIScrollView scroll, ZoomImage zoomImage)
+        private void SetupZoom()
         {
+            var scroll = this.Control;
+            var zoomImage = this.Element;
             if (scroll == null || zoomImage == null)
                 return;
 
+            var imageView = (UIImageView)scroll.Subviews[0];
+            if (imageView.Image != null)
+            {
+                //imageView.Frame = new CGRect(new CGPoint(), imageView.Image.Size);
+                //scroll.Frame = new CGRect(zoomImage.X, zoomImage.Y, imageView.Image.Size.Width, imageView.Image.Size.Height);
+                imageView.Frame = scroll.Bounds; //new CGRect(0, 0, imageView.Image.Size.Width, imageView.Image.Size.Height);
+                //imageView.ContentMode = zoomImage.Aspect.ToUIViewContentMode();
+                scroll.ContentSize = imageView.Frame.Size; //imageView.Image.Size;
+
+                // set the scale
+                var wScale = scroll.Frame.Width / imageView.Image.Size.Width;
+                var hScale = scroll.Frame.Height / imageView.Image.Size.Height;
+
+                //scroll.SetZoomScale(wScale, true);
+                //scroll.ZoomScale = wScale;
+
+                //scroll.ContentMode = zoomImage.Aspect.ToUIViewContentMode();
+                //imageView.Frame = new CGRect(0, 0, imageView.Image.Size.Width, imageView.Image.Size.Height);
+                //scroll.ContentSize = new CGSize(imageView.Image.CGImage.Width, imageView.Image.CGImage.Height);
+            }
+
             // set the size and aspect
-            scroll.ContentSize = new CGSize(zoomImage.WidthRequest, zoomImage.HeightRequest);
-            scroll.ContentMode = zoomImage.Aspect.ToUIViewContentMode();
+            //scroll.ContentSize = new CGSize(zoomImage.WidthRequest, zoomImage.HeightRequest);
+            //scroll.ContentMode = zoomImage.Aspect.ToUIViewContentMode();
 
             // set the zoom scale
             scroll.MinimumZoomScale = (float)zoomImage.MinZoom;
@@ -80,6 +124,8 @@ namespace XFExtensions.Controls.iOSUnified
                         }) { NumberOfTapsRequired = 2 }
                 );
             }
+            SetNeedsDisplay();
+            //this.SetNeedsLayout();
         }
 
         private UIView ViewForZoomingInScrollView(UIScrollView scrollView)
@@ -87,11 +133,28 @@ namespace XFExtensions.Controls.iOSUnified
             return scrollView.Subviews[0];
         }
 
-        protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
+        private CancellationTokenSource _propertyUpdateCancel;
+        protected override async void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            base.OnElementPropertyChanged(sender, e);
-            SetupZoom(this.Control, this.Element);
-            SetNeedsDisplay();
+            if (e.PropertyName == ZoomImage.WidthProperty.PropertyName)
+            {
+                var width = this.Element.Width;
+            }
+
+            if (_propertyUpdateCancel != null)
+            {
+                _propertyUpdateCancel.Cancel();
+            }
+            _propertyUpdateCancel = new CancellationTokenSource();
+            try
+            {
+                await Task.Delay(100, _propertyUpdateCancel.Token);
+                SetupZoom();
+            }
+            catch (TaskCanceledException)
+            {
+                // another update occurred so we don't need to do anything
+            }
         }
 
         private CGRect GenerateZoomRect(UIScrollView scrollView, float scaleFactor, CGPoint point)

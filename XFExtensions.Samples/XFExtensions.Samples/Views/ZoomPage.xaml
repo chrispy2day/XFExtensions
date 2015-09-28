@@ -11,17 +11,17 @@
 		</OnPlatform>
 	</ContentPage.Padding>
 	<ContentPage.Content>
-		<StackLayout HorizontalOptions="CenterAndExpand" 
-					 VerticalOptions="StartAndExpand">
+		<StackLayout HorizontalOptions="FillAndExpand" 
+					 VerticalOptions="FillAndExpand">
 
 			 <!-- Here's using the custom zoom image -->
 			 <Button Text="{Binding ToggleZoomText}" HorizontalOptions="CenterAndExpand" Command="{Binding ToggleZoomCommand}" />
 			 <controls:ZoomImage
 			 	Source="http://yeahsoup.s3-us-west-2.amazonaws.com/wp-content/uploads/2015/05/img1114.jpg"
-		 		HorizontalOptions="CenterAndExpand" 
-		 		VerticalOptions="CenterAndExpand"
+		 		HorizontalOptions="FillAndExpand" 
+		 		VerticalOptions="FillAndExpand"
 		 		ZoomEnabled="{Binding EnableZoom}"
-		 		Aspect="AspectFill" />
+		 		Aspect="AspectFit" />
 
 	 		<!-- Here's using a regular Image -->
 	 		<!--<Image Source="http://yeahsoup.s3-us-west-2.amazonaws.com/wp-content/uploads/2015/05/img1114.jpg"
