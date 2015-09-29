@@ -30,17 +30,20 @@ namespace XFExtensions.Controls.iOSUnified
                 //var url = webSource.Uri.ToString();
                 //var imageView = new UIImageView(UIImage.LoadFromData(NSData.FromUrl(NSUrl.FromString(url))));
 
-
                 _imageRenderer = new ImageRenderer();
                 _imageRenderer.SetElement(zoomImage);
                 var imageView = _imageRenderer.Control;
-                imageView.AutoresizingMask = UIViewAutoresizing.All;
+                imageView.SizeToFit();
+                //imageView.AutoresizingMask = UIViewAutoresizing.All;
                 var scroll = new UIScrollView
                 {
                     ClipsToBounds = true,
-                    BackgroundColor = UIColor.Red
+                    BackgroundColor = UIColor.Red,
+                    ContentMode = zoomImage.Aspect.ToUIViewContentMode(),
+                    ContentSize = imageView.Frame.Size
                 };
                 scroll.AddSubview(imageView);
+                scroll.ViewForZoomingInScrollView += (view) => imageView;
                 
                 //var scroll = new UIScrollView { BackgroundColor = UIColor.Red, AutoresizingMask = UIViewAutoresizing.All };
                 //scroll.ContentSize = imageView.Image.Size;
@@ -63,49 +66,52 @@ namespace XFExtensions.Controls.iOSUnified
                 return;
 
             var imageView = (UIImageView)scroll.Subviews[0];
-            if (imageView.Image != null)
-            {
-                //imageView.Frame = new CGRect(new CGPoint(), imageView.Image.Size);
-                //scroll.Frame = new CGRect(zoomImage.X, zoomImage.Y, imageView.Image.Size.Width, imageView.Image.Size.Height);
-                imageView.Frame = scroll.Bounds; //new CGRect(0, 0, imageView.Image.Size.Width, imageView.Image.Size.Height);
-                //imageView.ContentMode = zoomImage.Aspect.ToUIViewContentMode();
-                scroll.ContentSize = imageView.Frame.Size; //imageView.Image.Size;
+            if (imageView == null)
+                return;
 
-                // set the scale
-                var wScale = scroll.Frame.Width / imageView.Image.Size.Width;
-                var hScale = scroll.Frame.Height / imageView.Image.Size.Height;
+            //scroll.ContentMode = UIViewContentMode.ScaleAspectFit;
+            //imageView.SizeToFit();
+            //imageView.Frame = scroll.Bounds; //new CGRect(0, 0, imageView.Image.Size.Width, imageView.Image.Size.Height);
+            //imageView.ContentMode = zoomImage.Aspect.ToUIViewContentMode();
+            //scroll.ContentSize = imageView.Frame.Size; //imageView.Image.Size;
 
-                //scroll.SetZoomScale(wScale, true);
-                //scroll.ZoomScale = wScale;
+            // set the scale
+            var wScale = scroll.Frame.Width / imageView.Image.Size.Width;
+            var hScale = scroll.Frame.Height / imageView.Image.Size.Height;
 
-                //scroll.ContentMode = zoomImage.Aspect.ToUIViewContentMode();
-                //imageView.Frame = new CGRect(0, 0, imageView.Image.Size.Width, imageView.Image.Size.Height);
-                //scroll.ContentSize = new CGSize(imageView.Image.CGImage.Width, imageView.Image.CGImage.Height);
-            }
+            //scroll.SetZoomScale(wScale, true);
+            //scroll.ZoomScale = wScale;
+
+            //scroll.ContentMode = zoomImage.Aspect.ToUIViewContentMode();
+            //imageView.Frame = new CGRect(0, 0, imageView.Image.Size.Width, imageView.Image.Size.Height);
+            //scroll.ContentSize = new CGSize(imageView.Image.CGImage.Width, imageView.Image.CGImage.Height);
 
             // set the size and aspect
             //scroll.ContentSize = new CGSize(zoomImage.WidthRequest, zoomImage.HeightRequest);
             //scroll.ContentMode = zoomImage.Aspect.ToUIViewContentMode();
 
             // set the zoom scale
-            scroll.MinimumZoomScale = (float)zoomImage.MinZoom;
+            scroll.MinimumZoomScale = wScale;//(float)zoomImage.MinZoom;
             scroll.MaximumZoomScale = (float)zoomImage.MaxZoom;
 
+            scroll.ViewForZoomingInScrollView += ViewForZoomingInScrollView;
+            scroll.PinchGestureRecognizer.Enabled = true;
+
             // enable / disable zooming
-            if (zoomImage.ZoomEnabled && scroll.ViewForZoomingInScrollView == null)
+            if (zoomImage.ZoomEnabled)
             {
-                scroll.ViewForZoomingInScrollView += ViewForZoomingInScrollView;
+                //scroll.ViewForZoomingInScrollView += ViewForZoomingInScrollView;
                 // enable the pinch gesture recongnizer for default functionality
                 scroll.PinchGestureRecognizer.Enabled = true;
             }
             else
             {
                 // reset the image to normal size and position
-                scroll.SetZoomScale(1.0f, true);
+                scroll.SetZoomScale(wScale, true);//1.0f, true);
 
                 // turn off scrolling if it was previously enabled by removing the delegate
-                if (scroll.ViewForZoomingInScrollView != null)
-                    scroll.ViewForZoomingInScrollView -= ViewForZoomingInScrollView;
+//                if (scroll.ViewForZoomingInScrollView != null)
+//                    scroll.ViewForZoomingInScrollView -= ViewForZoomingInScrollView;
                 // disable pinch gesture so other controls can listen for it
                 scroll.PinchGestureRecognizer.Enabled = false;
             }
