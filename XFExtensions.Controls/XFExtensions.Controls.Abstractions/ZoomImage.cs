@@ -13,6 +13,15 @@ namespace XFExtensions.Controls.Abstractions
             set { SetValue(ZoomEnabledProperty, value); }
         }
 
+        public static readonly BindableProperty ScrollEnabledProperty =
+            BindableProperty.Create<ZoomImage, bool>(p => p.ScrollEnabled, false, BindingMode.Default);
+
+        public bool ScrollEnabled
+        {
+            get { return (bool)GetValue(ScrollEnabledProperty); }
+            set { SetValue(ScrollEnabledProperty, value); }
+        }
+
         public static readonly BindableProperty DoubleTapToZoomEnabledProperty =
             BindableProperty.Create<ZoomImage, bool>(p => p.DoubleTapToZoomEnabled, true, BindingMode.Default);
 

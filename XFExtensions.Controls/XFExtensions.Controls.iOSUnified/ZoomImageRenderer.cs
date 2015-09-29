@@ -16,6 +16,9 @@ namespace XFExtensions.Controls.iOSUnified
 {
     public class ZoomImageRenderer : ViewRenderer<ZoomImage, UIScrollView>
     {
+        private ZoomImage _zoomImage;
+        private UIScrollView _scrollView;
+        private UIImageView _imageView;
         private ImageRenderer _imageRenderer;
 
         protected override void OnElementChanged(ElementChangedEventArgs<ZoomImage> e)
@@ -23,120 +26,106 @@ namespace XFExtensions.Controls.iOSUnified
             if (this.Control == null && e.NewElement != null)
             {
                 // setup the control to be a scroll view with an image in it
-                var zoomImage = e.NewElement;
-                var webSource = (UriImageSource) zoomImage.Source;
+                _zoomImage = e.NewElement;
+                var webSource = (UriImageSource) _zoomImage.Source;
 
                 // for testing purposes create the image view myself
                 //var url = webSource.Uri.ToString();
                 //var imageView = new UIImageView(UIImage.LoadFromData(NSData.FromUrl(NSUrl.FromString(url))));
 
+                // prepare the image view
                 _imageRenderer = new ImageRenderer();
-                _imageRenderer.SetElement(zoomImage);
-                var imageView = _imageRenderer.Control;
-                imageView.SizeToFit();
+                _imageRenderer.SetElement(_zoomImage);
+                _imageView = _imageRenderer.Control;
+                // make sure to size the image view to the image it contains
+                _imageView.SizeToFit();
                 //imageView.AutoresizingMask = UIViewAutoresizing.All;
-                var scroll = new UIScrollView
+
+                // create the scroll view
+                _scrollView = new UIScrollView
                 {
                     ClipsToBounds = true,
                     BackgroundColor = UIColor.Red,
-                    ContentMode = zoomImage.Aspect.ToUIViewContentMode(),
-                    ContentSize = imageView.Frame.Size
+                    ContentMode = _zoomImage.Aspect.ToUIViewContentMode(),
+                    ContentSize = _imageView.Frame.Size,
+                    ScrollEnabled = _zoomImage.ScrollEnabled
                 };
-                scroll.AddSubview(imageView);
-                scroll.ViewForZoomingInScrollView += (view) => imageView;
+                // add the image view to it
+                _scrollView.AddSubview(_imageView);
+                // setup the zooming and double tap
+                _scrollView.ViewForZoomingInScrollView += (view) => _imageView;
+                _scrollView.AddGestureRecognizer(
+                    new UITapGestureRecognizer((gest) =>
+                    {
+                        if (_zoomImage.DoubleTapToZoomEnabled)
+                        {
+                                var location = gest.LocationOfTouch(0, _scrollView);
+                                _scrollView.ZoomToRect(GenerateZoomRect(_scrollView, (float)_zoomImage.TapZoomScale, location), true);
+                        }
+                    }) 
+                    { NumberOfTapsRequired = 2 }
+                );
                 
-                //var scroll = new UIScrollView { BackgroundColor = UIColor.Red, AutoresizingMask = UIViewAutoresizing.All };
-                //scroll.ContentSize = imageView.Image.Size;
-                //scroll.AddSubview(imageView);
-                //scroll.MinimumZoomScale = 1;
-                //scroll.MaximumZoomScale = 5;
-                //scroll.ViewForZoomingInScrollView += view => imageView;
-                
-                this.SetNativeControl(scroll);
+                this.SetNativeControl(_scrollView);
             }
 
             base.OnElementChanged(e);
         }
 
+        private void SetZoomToAspect()
+        {
+            // the min and max zoom provided by the zoom control will be based on whatever initial scale is determined here
+            // so 10X max will be 10 x original zoom and similiarly for min zoom
+
+            // get the scale for each dimension
+            var wScale = _scrollView.Frame.Width / _imageView.Image.Size.Width;
+            var hScale = _scrollView.Frame.Height / _imageView.Image.Size.Height;
+            nfloat scale;
+
+            switch (_zoomImage.Aspect)
+            {
+                case Aspect.AspectFill:
+                case Aspect.Fill:
+                    // fill the view, so scale to the larger of the two scales
+                    scale = (nfloat)Math.Max(wScale, hScale);
+                    break;
+                default:
+                    // fit the full image, so scale to the smaller of the two scales
+                    scale = (nfloat)Math.Min(wScale, hScale);
+                    break;
+            }
+
+            _scrollView.MinimumZoomScale = (nfloat)_zoomImage.MinZoom * scale;
+            _scrollView.MaximumZoomScale = (nfloat)_zoomImage.MaxZoom * scale;
+
+            _scrollView.SetZoomScale(scale, true);
+        }
+
         private void SetupZoom()
         {
-            var scroll = this.Control;
-            var zoomImage = this.Element;
-            if (scroll == null || zoomImage == null)
+            if (_scrollView == null || _zoomImage == null || _imageView == null)
                 return;
-
-            var imageView = (UIImageView)scroll.Subviews[0];
-            if (imageView == null)
-                return;
-
-            //scroll.ContentMode = UIViewContentMode.ScaleAspectFit;
-            //imageView.SizeToFit();
-            //imageView.Frame = scroll.Bounds; //new CGRect(0, 0, imageView.Image.Size.Width, imageView.Image.Size.Height);
-            //imageView.ContentMode = zoomImage.Aspect.ToUIViewContentMode();
-            //scroll.ContentSize = imageView.Frame.Size; //imageView.Image.Size;
 
             // set the scale
-            var wScale = scroll.Frame.Width / imageView.Image.Size.Width;
-            var hScale = scroll.Frame.Height / imageView.Image.Size.Height;
-
-            //scroll.SetZoomScale(wScale, true);
-            //scroll.ZoomScale = wScale;
-
-            //scroll.ContentMode = zoomImage.Aspect.ToUIViewContentMode();
-            //imageView.Frame = new CGRect(0, 0, imageView.Image.Size.Width, imageView.Image.Size.Height);
-            //scroll.ContentSize = new CGSize(imageView.Image.CGImage.Width, imageView.Image.CGImage.Height);
-
-            // set the size and aspect
-            //scroll.ContentSize = new CGSize(zoomImage.WidthRequest, zoomImage.HeightRequest);
-            //scroll.ContentMode = zoomImage.Aspect.ToUIViewContentMode();
-
-            // set the zoom scale
-            scroll.MinimumZoomScale = wScale;//(float)zoomImage.MinZoom;
-            scroll.MaximumZoomScale = (float)zoomImage.MaxZoom;
-
-            scroll.ViewForZoomingInScrollView += ViewForZoomingInScrollView;
-            scroll.PinchGestureRecognizer.Enabled = true;
+            SetZoomToAspect();
 
             // enable / disable zooming
-            if (zoomImage.ZoomEnabled)
+            if (_zoomImage.ZoomEnabled)
             {
-                //scroll.ViewForZoomingInScrollView += ViewForZoomingInScrollView;
                 // enable the pinch gesture recongnizer for default functionality
-                scroll.PinchGestureRecognizer.Enabled = true;
+                _scrollView.PinchGestureRecognizer.Enabled = true;
             }
             else
             {
                 // reset the image to normal size and position
-                scroll.SetZoomScale(wScale, true);//1.0f, true);
+                SetZoomToAspect();
 
-                // turn off scrolling if it was previously enabled by removing the delegate
-//                if (scroll.ViewForZoomingInScrollView != null)
-//                    scroll.ViewForZoomingInScrollView -= ViewForZoomingInScrollView;
                 // disable pinch gesture so other controls can listen for it
-                scroll.PinchGestureRecognizer.Enabled = false;
+                _scrollView.PinchGestureRecognizer.Enabled = false;
             }
 
-            // enable / disable double tap to zoom (note that zooming must be enabled for this to actually zoom, regardless of this setting)
-            var tapGesture = scroll.GestureRecognizers.SingleOrDefault(g => g is UITapGestureRecognizer);
-            if (tapGesture != null)
-                scroll.RemoveGestureRecognizer(tapGesture); // always remove this and then readd it if necessary to pick up scale changes
-            if (zoomImage.DoubleTapToZoomEnabled)
-            {
-                scroll.AddGestureRecognizer(
-                    new UITapGestureRecognizer((gest) =>
-                        {
-                            var location = gest.LocationOfTouch(0, scroll);
-                            scroll.ZoomToRect(GenerateZoomRect(scroll, (float)zoomImage.TapZoomScale, location), true);
-                        }) { NumberOfTapsRequired = 2 }
-                );
-            }
             SetNeedsDisplay();
             //this.SetNeedsLayout();
-        }
-
-        private UIView ViewForZoomingInScrollView(UIScrollView scrollView)
-        {
-            return scrollView.Subviews[0];
         }
 
         private CancellationTokenSource _propertyUpdateCancel;
