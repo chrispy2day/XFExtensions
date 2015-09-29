@@ -24,6 +24,17 @@ namespace XFExtensions.Samples
                 return (EnableZoom) ? "Disable Zoom" : "Enable Zoom";
             }
         }
+
+        public Aspect ImageAspect
+        {
+            get
+            {
+                if (EnableZoom)
+                    return Aspect.AspectFit;
+                else
+                    return Aspect.AspectFill;
+            }
+        }
         public ICommand ToggleZoomCommand { get; private set; }
     }
 }

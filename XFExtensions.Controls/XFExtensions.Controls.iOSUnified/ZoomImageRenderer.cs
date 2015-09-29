@@ -20,6 +20,7 @@ namespace XFExtensions.Controls.iOSUnified
         private UIScrollView _scrollView;
         private UIImageView _imageView;
         private ImageRenderer _imageRenderer;
+        private nfloat _baseScalingFactor;
 
         protected override void OnElementChanged(ElementChangedEventArgs<ZoomImage> e)
         {
@@ -27,11 +28,12 @@ namespace XFExtensions.Controls.iOSUnified
             {
                 // setup the control to be a scroll view with an image in it
                 _zoomImage = e.NewElement;
-                var webSource = (UriImageSource) _zoomImage.Source;
 
                 // for testing purposes create the image view myself
-                //var url = webSource.Uri.ToString();
-                //var imageView = new UIImageView(UIImage.LoadFromData(NSData.FromUrl(NSUrl.FromString(url))));
+//                var webSource = (UriImageSource) _zoomImage.Source;
+//                var url = webSource.Uri.ToString();
+//                var data = NSData.FromUrl(NSUrl.FromString(url));
+//                _imageView = new UIImageView(UIImage.LoadFromData(data));
 
                 // prepare the image view
                 _imageRenderer = new ImageRenderer();
@@ -39,7 +41,6 @@ namespace XFExtensions.Controls.iOSUnified
                 _imageView = _imageRenderer.Control;
                 // make sure to size the image view to the image it contains
                 _imageView.SizeToFit();
-                //imageView.AutoresizingMask = UIViewAutoresizing.All;
 
                 // create the scroll view
                 _scrollView = new UIScrollView
@@ -65,90 +66,113 @@ namespace XFExtensions.Controls.iOSUnified
                     }) 
                     { NumberOfTapsRequired = 2 }
                 );
-                
                 this.SetNativeControl(_scrollView);
             }
 
             base.OnElementChanged(e);
         }
 
-        private void SetZoomToAspect()
+        private void SetZoomToAspect(bool reapplyCurrentScale = false)
         {
             // the min and max zoom provided by the zoom control will be based on whatever initial scale is determined here
             // so 10X max will be 10 x original zoom and similiarly for min zoom
 
+            // if the scroll view doesn't have any size, just exit
+            if (_scrollView.Frame.Width == 0 || _scrollView.Frame.Height == 0)
+                return;
+
+            if (_baseScalingFactor == 0)
+                reapplyCurrentScale = false;
+            
+            // if reapplying the current scale, hold on to what it currently is without the base scaling factor (which may change)
+            nfloat oldScale = 0;
+            if (reapplyCurrentScale)
+                oldScale = _scrollView.ZoomScale / _baseScalingFactor;
+
             // get the scale for each dimension
             var wScale = _scrollView.Frame.Width / _imageView.Image.Size.Width;
             var hScale = _scrollView.Frame.Height / _imageView.Image.Size.Height;
-            nfloat scale;
 
+            // determine the base scaling factor to use based on the requested aspect
             switch (_zoomImage.Aspect)
             {
                 case Aspect.AspectFill:
                 case Aspect.Fill:
                     // fill the view, so scale to the larger of the two scales
-                    scale = (nfloat)Math.Max(wScale, hScale);
+                    _baseScalingFactor = (nfloat)Math.Max(wScale, hScale);
                     break;
                 default:
                     // fit the full image, so scale to the smaller of the two scales
-                    scale = (nfloat)Math.Min(wScale, hScale);
+                    _baseScalingFactor = (nfloat)Math.Min(wScale, hScale);
                     break;
             }
 
-            _scrollView.MinimumZoomScale = (nfloat)_zoomImage.MinZoom * scale;
-            _scrollView.MaximumZoomScale = (nfloat)_zoomImage.MaxZoom * scale;
+            // assign the min and max zooms based on the user request and base scaling factor
+            _scrollView.MinimumZoomScale = (nfloat)_zoomImage.MinZoom * _baseScalingFactor;
+            _scrollView.MaximumZoomScale = (nfloat)_zoomImage.MaxZoom * _baseScalingFactor;
 
-            _scrollView.SetZoomScale(scale, true);
-        }
+            // center image when filling the screen
+            var widthDiff = _imageView.Bounds.Width - _scrollView.Bounds.Width;
+            var heightDiff = _imageView.Bounds.Height - _scrollView.Bounds.Height;
+            _scrollView.ContentOffset = new CGPoint(
+                Math.Max(widthDiff / 2, 0), 
+                Math.Max(heightDiff / 2, 0));
+            // center the image in the scroll when image is smaller than the scroll view
+            var inset = new UIEdgeInsets();
+            if (widthDiff < 0)
+                inset.Left = (nfloat)Math.Abs(widthDiff) / (2 * _baseScalingFactor);
+            if (heightDiff < 0)
+                inset.Top = (nfloat)Math.Abs(heightDiff) / (2 * _baseScalingFactor);
+            _scrollView.ContentInset = inset;
 
-        private void SetupZoom()
-        {
-            if (_scrollView == null || _zoomImage == null || _imageView == null)
-                return;
-
-            // set the scale
-            SetZoomToAspect();
-
-            // enable / disable zooming
-            if (_zoomImage.ZoomEnabled)
-            {
-                // enable the pinch gesture recongnizer for default functionality
-                _scrollView.PinchGestureRecognizer.Enabled = true;
-            }
+            // set the current scale
+            if (reapplyCurrentScale)
+                _scrollView.SetZoomScale(oldScale * _baseScalingFactor, true);
             else
-            {
-                // reset the image to normal size and position
-                SetZoomToAspect();
-
-                // disable pinch gesture so other controls can listen for it
-                _scrollView.PinchGestureRecognizer.Enabled = false;
-            }
-
-            SetNeedsDisplay();
-            //this.SetNeedsLayout();
+                _scrollView.SetZoomScale(_baseScalingFactor, true);
         }
 
-        private CancellationTokenSource _propertyUpdateCancel;
         protected override async void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == ZoomImage.WidthProperty.PropertyName)
+            base.OnElementPropertyChanged(sender, e);
+
+            if (e.PropertyName == ZoomImage.CurrentZoomProperty.PropertyName)
             {
-                var width = this.Element.Width;
+                var scale = (nfloat)_zoomImage.Scale * _baseScalingFactor;
+                _scrollView.SetZoomScale(scale, true);
             }
 
-            if (_propertyUpdateCancel != null)
+            if (e.PropertyName == ZoomImage.WidthProperty.PropertyName 
+                || e.PropertyName == ZoomImage.HeightProperty.PropertyName)
             {
-                _propertyUpdateCancel.Cancel();
+                await Task.Delay(50); // give a short delay for changes to be applied to the frame
+                SetZoomToAspect(true); // reapply the current scale
+                SetNeedsDisplay();
             }
-            _propertyUpdateCancel = new CancellationTokenSource();
-            try
+
+            if (e.PropertyName == ZoomImage.AspectProperty.PropertyName)
             {
-                await Task.Delay(100, _propertyUpdateCancel.Token);
-                SetupZoom();
+                SetZoomToAspect();
             }
-            catch (TaskCanceledException)
+
+            if (e.PropertyName == ZoomImage.MaxZoomProperty.PropertyName)
             {
-                // another update occurred so we don't need to do anything
+                _scrollView.MaximumZoomScale = (nfloat)_zoomImage.MaxZoom * _baseScalingFactor;
+            }
+            if (e.PropertyName == ZoomImage.MinZoomProperty.PropertyName)
+            {
+                _scrollView.MaximumZoomScale = (nfloat)_zoomImage.MinZoom * _baseScalingFactor;
+            }
+            if (e.PropertyName == ZoomImage.ScrollEnabledProperty.PropertyName)
+            {
+                _scrollView.ScrollEnabled = _zoomImage.ScrollEnabled;
+            }
+            if (e.PropertyName == ZoomImage.ZoomEnabledProperty.PropertyName)
+            {
+                _scrollView.PinchGestureRecognizer.Enabled = _zoomImage.ZoomEnabled;
+                // if zoom is disabled, return to aspect view
+                if (!_zoomImage.ZoomEnabled)
+                    SetZoomToAspect();
             }
         }
 
