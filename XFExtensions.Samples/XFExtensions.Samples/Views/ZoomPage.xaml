@@ -15,9 +15,10 @@
 					 VerticalOptions="FillAndExpand">
 
 			 <!-- Here's using the custom zoom image -->
+			 <Button Text="Change Image" HorizontalOptions="CenterAndExpand" Command="{Binding ChangeImageCommand}" />
 			 <Button Text="{Binding ToggleZoomText}" HorizontalOptions="CenterAndExpand" Command="{Binding ToggleZoomCommand}" />
 			 <controls:ZoomImage
-			 	Source="http://i.huffpost.com/gen/1490756/images/o-CHIMPANZEE-facebook.jpg"
+			 	Source="{Binding Image}"
 		 		HorizontalOptions="FillAndExpand" 
 		 		VerticalOptions="FillAndExpand"
 		 		ZoomEnabled="{Binding EnableZoom}"
@@ -29,13 +30,6 @@
 	 			   HorizontalOptions="CenterAndExpand" 
 	 			   VerticalOptions="CenterAndExpand"
 	 			   Aspect="AspectFill"/>-->
-
-	 		<!-- Test Images
-	 		http://yeahsoup.s3-us-west-2.amazonaws.com/wp-content/uploads/2015/05/img1114.jpg
-	 		http://i.telegraph.co.uk/multimedia/archive/02262/A124CE_2262003b.jpg
-	 		http://i.telegraph.co.uk/multimedia/archive/01476/chimp_1476818c.jpg
-	 		http://i.huffpost.com/gen/1490756/images/o-CHIMPANZEE-facebook.jpg
-	 		-->
 		</StackLayout>
 	</ContentPage.Content>
 </ContentPage>

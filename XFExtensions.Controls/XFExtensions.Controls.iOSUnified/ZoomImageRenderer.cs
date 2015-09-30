@@ -6,12 +6,8 @@ using Xamarin.Forms.Platform.iOS;
 using UIKit;
 using CoreGraphics;
 using System.ComponentModel;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Foundation;
-using System.Net.Http;
-using System.Net;
 
 [assembly: ExportRenderer(typeof(ZoomImage), typeof(ZoomImageRenderer))]
 namespace XFExtensions.Controls.iOSUnified
@@ -29,7 +25,6 @@ namespace XFExtensions.Controls.iOSUnified
             {
                 // setup the control to be a scroll view with an image in it
                 _zoomImage = e.NewElement;
-                AssignImage();
 
                 // create the scroll view
                 _scrollView = new UIScrollView
@@ -37,10 +32,10 @@ namespace XFExtensions.Controls.iOSUnified
                     ClipsToBounds = true,
                     BackgroundColor = UIColor.Red,
                     ContentMode = _zoomImage.Aspect.ToUIViewContentMode(),
-                    ContentSize = _imageView.Frame.Size,
                     ScrollEnabled = _zoomImage.ScrollEnabled
                 };
                 // add the image view to it
+                AssignImage();
                 _scrollView.AddSubview(_imageView);
                 // setup the zooming and double tap
                 _scrollView.ViewForZoomingInScrollView += (view) => _imageView;
@@ -57,12 +52,15 @@ namespace XFExtensions.Controls.iOSUnified
                 );
                 this.SetNativeControl(_scrollView);
             }
-
+            SetNeedsDisplay();
             base.OnElementChanged(e);
         }
 
         private void AssignImage()
         {
+            // reset the scroll or the size and offsets will all be off for the new image (do this before updating the image)
+            ResetScrollView();
+
             var webSource = _zoomImage.Source as UriImageSource;
             var fileSource = _zoomImage.Source as FileImageSource;
             if (webSource != null)
@@ -93,7 +91,18 @@ namespace XFExtensions.Controls.iOSUnified
                 throw new InvalidOperationException("Unable to create image, unknown image source type.");
             }
             _imageView.SizeToFit();
-            SetNeedsDisplay();
+            _scrollView.ContentSize = _imageView.Frame.Size;
+        }
+
+        private void ResetScrollView()
+        {
+            _scrollView.ContentOffset = new CGPoint(0, 0);
+            _scrollView.ContentInset = new UIEdgeInsets(0, 0, 0, 0);
+            // the min and max don't really matter, they will be reset, just need 1.0 to be in the range so that
+            // when the new image is set the sizing is correct.
+            _scrollView.MinimumZoomScale = 1.0f;
+            _scrollView.MaximumZoomScale = 2.0f;
+            _scrollView.ZoomScale = 1.0f;
         }
 
         private void SetZoomToAspect(bool reapplyCurrentScale = false)
@@ -141,9 +150,10 @@ namespace XFExtensions.Controls.iOSUnified
             // center image when filling the screen
             var widthDiff = (_imageView.Bounds.Width * _baseScalingFactor) - _scrollView.Bounds.Width;
             var heightDiff = (_imageView.Bounds.Height * _baseScalingFactor) - _scrollView.Bounds.Height;
-            _scrollView.ContentOffset = new CGPoint(
-                Math.Max(widthDiff / 2, 0), 
-                Math.Max(heightDiff / 2, 0));
+            // using the set so that it animates, but it always seems to be off if I don't reset the offset first
+            _scrollView.ContentOffset = new CGPoint(0, 0);
+            _scrollView.SetContentOffset(new CGPoint(Math.Max(widthDiff / 2, 0), Math.Max(heightDiff / 2, 0)), true);
+
             // center the image in the scroll when image is smaller than the scroll view
             var inset = new UIEdgeInsets();
             if (widthDiff < 0)
@@ -200,6 +210,7 @@ namespace XFExtensions.Controls.iOSUnified
             {
                 AssignImage();
                 SetZoomToAspect();
+                SetNeedsDisplay();
             }
 
             if (e.PropertyName == ZoomImage.ZoomEnabledProperty.PropertyName)
