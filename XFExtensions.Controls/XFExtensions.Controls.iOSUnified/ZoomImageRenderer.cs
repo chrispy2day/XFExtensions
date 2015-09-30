@@ -37,10 +37,17 @@ namespace XFExtensions.Controls.iOSUnified
 //                var iosData = NSData.FromArray(imageBytes);
 //                _imageView = new UIImageView(UIImage.LoadFromData(iosData));
 
-                var webSource = (UriImageSource) _zoomImage.Source;
-                var url = webSource.Uri.ToString();
-                var data = NSData.FromUrl(NSUrl.FromString(url));
-                _imageView = new UIImageView(UIImage.LoadFromData(data));
+                var webSource = _zoomImage.Source as UriImageSource;
+                if (webSource != null)
+                {
+                    var url = webSource.Uri.ToString();
+                    var data = NSData.FromUrl(NSUrl.FromString(url));
+                    _imageView = new UIImageView(UIImage.LoadFromData(data));
+                }
+                else
+                {
+                    // use a file source
+                }
 
                 // prepare the image view
 //                _imageRenderer = new ImageRenderer();
