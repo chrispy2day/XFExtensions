@@ -10,6 +10,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Foundation;
+using System.Net.Http;
+using System.Net;
 
 [assembly: ExportRenderer(typeof(ZoomImage), typeof(ZoomImageRenderer))]
 namespace XFExtensions.Controls.iOSUnified
@@ -30,15 +32,20 @@ namespace XFExtensions.Controls.iOSUnified
                 _zoomImage = e.NewElement;
 
                 // for testing purposes create the image view myself
-//                var webSource = (UriImageSource) _zoomImage.Source;
-//                var url = webSource.Uri.ToString();
-//                var data = NSData.FromUrl(NSUrl.FromString(url));
-//                _imageView = new UIImageView(UIImage.LoadFromData(data));
+//                var wc = new WebClient();
+//                byte[] imageBytes = wc.DownloadData("http://octodex.github.com/images/Professortocat_v2.png");
+//                var iosData = NSData.FromArray(imageBytes);
+//                _imageView = new UIImageView(UIImage.LoadFromData(iosData));
+
+                var webSource = (UriImageSource) _zoomImage.Source;
+                var url = webSource.Uri.ToString();
+                var data = NSData.FromUrl(NSUrl.FromString(url));
+                _imageView = new UIImageView(UIImage.LoadFromData(data));
 
                 // prepare the image view
-                _imageRenderer = new ImageRenderer();
-                _imageRenderer.SetElement(_zoomImage);
-                _imageView = _imageRenderer.Control;
+//                _imageRenderer = new ImageRenderer();
+//                _imageRenderer.SetElement(_zoomImage);
+//                _imageView = _imageRenderer.Control;
                 // make sure to size the image view to the image it contains
                 _imageView.SizeToFit();
 
@@ -77,6 +84,9 @@ namespace XFExtensions.Controls.iOSUnified
             // the min and max zoom provided by the zoom control will be based on whatever initial scale is determined here
             // so 10X max will be 10 x original zoom and similiarly for min zoom
 
+            if (_scrollView == null || _imageView == null || _imageView.Image == null)
+                return;
+
             // if the scroll view doesn't have any size, just exit
             if (_scrollView.Frame.Width == 0 || _scrollView.Frame.Height == 0)
                 return;
@@ -112,17 +122,17 @@ namespace XFExtensions.Controls.iOSUnified
             _scrollView.MaximumZoomScale = (nfloat)_zoomImage.MaxZoom * _baseScalingFactor;
 
             // center image when filling the screen
-            var widthDiff = _imageView.Bounds.Width - _scrollView.Bounds.Width;
-            var heightDiff = _imageView.Bounds.Height - _scrollView.Bounds.Height;
+            var widthDiff = (_imageView.Bounds.Width * _baseScalingFactor) - _scrollView.Bounds.Width;
+            var heightDiff = (_imageView.Bounds.Height * _baseScalingFactor) - _scrollView.Bounds.Height;
             _scrollView.ContentOffset = new CGPoint(
                 Math.Max(widthDiff / 2, 0), 
                 Math.Max(heightDiff / 2, 0));
             // center the image in the scroll when image is smaller than the scroll view
             var inset = new UIEdgeInsets();
             if (widthDiff < 0)
-                inset.Left = (nfloat)Math.Abs(widthDiff) / (2 * _baseScalingFactor);
+                inset.Left = (nfloat)Math.Abs(widthDiff) / 2;
             if (heightDiff < 0)
-                inset.Top = (nfloat)Math.Abs(heightDiff) / (2 * _baseScalingFactor);
+                inset.Top = (nfloat)Math.Abs(heightDiff) / 2;
             _scrollView.ContentInset = inset;
 
             // set the current scale
