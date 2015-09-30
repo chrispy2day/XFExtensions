@@ -21,7 +21,6 @@ namespace XFExtensions.Controls.iOSUnified
         private ZoomImage _zoomImage;
         private UIScrollView _scrollView;
         private UIImageView _imageView;
-        private ImageRenderer _imageRenderer;
         private nfloat _baseScalingFactor;
 
         protected override void OnElementChanged(ElementChangedEventArgs<ZoomImage> e)
@@ -30,31 +29,7 @@ namespace XFExtensions.Controls.iOSUnified
             {
                 // setup the control to be a scroll view with an image in it
                 _zoomImage = e.NewElement;
-
-                // for testing purposes create the image view myself
-//                var wc = new WebClient();
-//                byte[] imageBytes = wc.DownloadData("http://octodex.github.com/images/Professortocat_v2.png");
-//                var iosData = NSData.FromArray(imageBytes);
-//                _imageView = new UIImageView(UIImage.LoadFromData(iosData));
-
-                var webSource = _zoomImage.Source as UriImageSource;
-                if (webSource != null)
-                {
-                    var url = webSource.Uri.ToString();
-                    var data = NSData.FromUrl(NSUrl.FromString(url));
-                    _imageView = new UIImageView(UIImage.LoadFromData(data));
-                }
-                else
-                {
-                    // use a file source
-                }
-
-                // prepare the image view
-//                _imageRenderer = new ImageRenderer();
-//                _imageRenderer.SetElement(_zoomImage);
-//                _imageView = _imageRenderer.Control;
-                // make sure to size the image view to the image it contains
-                _imageView.SizeToFit();
+                AssignImage();
 
                 // create the scroll view
                 _scrollView = new UIScrollView
@@ -84,6 +59,41 @@ namespace XFExtensions.Controls.iOSUnified
             }
 
             base.OnElementChanged(e);
+        }
+
+        private void AssignImage()
+        {
+            var webSource = _zoomImage.Source as UriImageSource;
+            var fileSource = _zoomImage.Source as FileImageSource;
+            if (webSource != null)
+            {
+                var url = webSource.Uri.ToString();
+                using (var data = NSData.FromUrl(NSUrl.FromString(url)))
+                using (var image = UIImage.LoadFromData(data))
+                {
+                    if (_imageView == null)
+                        _imageView = new UIImageView(image);
+                    else
+                        _imageView.Image = image;
+                }
+            }
+            else if (fileSource != null)
+            {
+                // use a file source
+                using (var image = UIImage.FromFile(fileSource.File))
+                {
+                    if (_imageView == null)
+                        _imageView = new UIImageView(image);
+                    else
+                        _imageView.Image = image;
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Unable to create image, unknown image source type.");
+            }
+            _imageView.SizeToFit();
+            SetNeedsDisplay();
         }
 
         private void SetZoomToAspect(bool reapplyCurrentScale = false)
@@ -153,23 +163,23 @@ namespace XFExtensions.Controls.iOSUnified
         {
             base.OnElementPropertyChanged(sender, e);
 
+            if (e.PropertyName == ZoomImage.AspectProperty.PropertyName)
+            {
+                SetZoomToAspect();
+            }
+
             if (e.PropertyName == ZoomImage.CurrentZoomProperty.PropertyName)
             {
                 var scale = (nfloat)_zoomImage.Scale * _baseScalingFactor;
                 _scrollView.SetZoomScale(scale, true);
             }
 
-            if (e.PropertyName == ZoomImage.WidthProperty.PropertyName 
-                || e.PropertyName == ZoomImage.HeightProperty.PropertyName)
+            if (e.PropertyName == ZoomImage.HeightProperty.PropertyName 
+                || e.PropertyName == ZoomImage.WidthProperty.PropertyName)
             {
                 await Task.Delay(50); // give a short delay for changes to be applied to the frame
                 SetZoomToAspect(true); // reapply the current scale
                 SetNeedsDisplay();
-            }
-
-            if (e.PropertyName == ZoomImage.AspectProperty.PropertyName)
-            {
-                SetZoomToAspect();
             }
 
             if (e.PropertyName == ZoomImage.MaxZoomProperty.PropertyName)
@@ -180,10 +190,18 @@ namespace XFExtensions.Controls.iOSUnified
             {
                 _scrollView.MaximumZoomScale = (nfloat)_zoomImage.MinZoom * _baseScalingFactor;
             }
+
             if (e.PropertyName == ZoomImage.ScrollEnabledProperty.PropertyName)
             {
                 _scrollView.ScrollEnabled = _zoomImage.ScrollEnabled;
             }
+
+            if (e.PropertyName == ZoomImage.SourceProperty.PropertyName)
+            {
+                AssignImage();
+                SetZoomToAspect();
+            }
+
             if (e.PropertyName == ZoomImage.ZoomEnabledProperty.PropertyName)
             {
                 _scrollView.PinchGestureRecognizer.Enabled = _zoomImage.ZoomEnabled;

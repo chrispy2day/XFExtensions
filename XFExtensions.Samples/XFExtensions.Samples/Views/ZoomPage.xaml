@@ -17,7 +17,7 @@
 			 <!-- Here's using the custom zoom image -->
 			 <Button Text="{Binding ToggleZoomText}" HorizontalOptions="CenterAndExpand" Command="{Binding ToggleZoomCommand}" />
 			 <controls:ZoomImage
-			 	Source="http://i.telegraph.co.uk/multimedia/archive/01476/chimp_1476818c.jpg"
+			 	Source="http://i.huffpost.com/gen/1490756/images/o-CHIMPANZEE-facebook.jpg"
 		 		HorizontalOptions="FillAndExpand" 
 		 		VerticalOptions="FillAndExpand"
 		 		ZoomEnabled="{Binding EnableZoom}"
