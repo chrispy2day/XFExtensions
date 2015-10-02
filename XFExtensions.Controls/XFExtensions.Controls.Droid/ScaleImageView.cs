@@ -53,19 +53,6 @@ namespace XFExtensions.Controls.Droid
     {
         private Context m_Context;
 
-        private float m_MaxScale = 4.0f;
-        public float MaxScale
-        {
-            get
-            {
-                return m_MaxScale;
-            }
-            set
-            {
-                m_MaxScale = value;
-            }
-        }
-
         private Matrix m_Matrix = new Matrix();
         private float[] m_MatrixValues = new float[9];
         private int m_Width;
@@ -74,6 +61,7 @@ namespace XFExtensions.Controls.Droid
         private int m_IntrinsicHeight;
         private float m_Scale;
         private float m_MinScale;
+        private float m_MaxScale = 4.0f;
         private float m_PreviousDistance;
         private int m_PreviousMoveX;
         private int m_PreviousMoveY;
@@ -144,7 +132,8 @@ namespace XFExtensions.Controls.Droid
                     m_Scale = (float)Math.Max(hScale, vScale);
 
                 // set the min and max scales
-                m_MinScale = m_Scale;
+                m_MinScale = m_Scale * (float)ZoomImage.MinZoom;
+                m_MaxScale = m_Scale * (float)ZoomImage.MaxZoom;
 
                 // perform the zoom
                 ZoomTo(m_Scale, m_Width / 2, m_Height / 2);
