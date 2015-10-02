@@ -267,9 +267,12 @@ namespace XFExtensions.Controls.Droid
                     {
                         if (touchCount >= 2)
                         {
-                            var distance = this.Distance(e.GetX(0), e.GetX(1), e.GetY(0), e.GetY(1));
-                            m_PreviousDistance = distance;
-                            m_IsScaling = true;
+                            if (ZoomImage.ZoomEnabled)
+                            {
+                                var distance = this.Distance(e.GetX(0), e.GetX(1), e.GetY(0), e.GetY(1));
+                                m_PreviousDistance = distance;
+                                m_IsScaling = true;
+                            }
                         }
                     }
                     break;
@@ -278,23 +281,29 @@ namespace XFExtensions.Controls.Droid
                     {
                         if (touchCount >= 2 && m_IsScaling)
                         {
-                            var distance = this.Distance(e.GetX(0), e.GetX(1), e.GetY(0), e.GetY(1));
-                            var scale = (distance - m_PreviousDistance) / this.DispDistance();
-                            m_PreviousDistance = distance;
-                            scale += 1;
-                            scale = scale * scale;
-                            this.ZoomTo(scale, m_Width / 2, m_Height / 2);
-                            this.Cutting();
+                            if (ZoomImage.ZoomEnabled)
+                            {
+                                var distance = this.Distance(e.GetX(0), e.GetX(1), e.GetY(0), e.GetY(1));
+                                var scale = (distance - m_PreviousDistance) / this.DispDistance();
+                                m_PreviousDistance = distance;
+                                scale += 1;
+                                scale = scale * scale;
+                                this.ZoomTo(scale, m_Width / 2, m_Height / 2);
+                                this.Cutting();
+                            }
                         }
                         else if (!m_IsScaling)
                         {
-                            var distanceX = m_PreviousMoveX - (int)e.GetX();
-                            var distanceY = m_PreviousMoveY - (int)e.GetY();
-                            m_PreviousMoveX = (int)e.GetX();
-                            m_PreviousMoveY = (int)e.GetY();
+                            if (ZoomImage.ScrollEnabled)
+                            {
+                                var distanceX = m_PreviousMoveX - (int)e.GetX();
+                                var distanceY = m_PreviousMoveY - (int)e.GetY();
+                                m_PreviousMoveX = (int)e.GetX();
+                                m_PreviousMoveY = (int)e.GetY();
 
-                            m_Matrix.PostTranslate(-distanceX, -distanceY);
-                            this.Cutting();
+                                m_Matrix.PostTranslate(-distanceX, -distanceY);
+                                this.Cutting();
+                            }
                         }
                     }
                     break;
