@@ -23,6 +23,7 @@ using Android.Graphics;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
+using XFExtensions.Controls.Abstractions;
 
 namespace XFExtensions.Controls.Droid
 {
@@ -52,7 +53,7 @@ namespace XFExtensions.Controls.Droid
     {
         private Context m_Context;
 
-        private float m_MaxScale = 2.0f;
+        private float m_MaxScale = 4.0f;
         public float MaxScale
         {
             get
@@ -65,7 +66,7 @@ namespace XFExtensions.Controls.Droid
             }
         }
 
-        private Matrix m_Matrix;
+        private Matrix m_Matrix = new Matrix();
         private float[] m_MatrixValues = new float[9];
         private int m_Width;
         private int m_Height;
@@ -94,6 +95,8 @@ namespace XFExtensions.Controls.Droid
             Initialize();
         }
 
+        public ZoomImage ZoomImage { get; set; }
+
         public override void SetImageBitmap(Bitmap bm)
         {
             base.SetImageBitmap(bm);
@@ -106,10 +109,9 @@ namespace XFExtensions.Controls.Droid
             this.Initialize();
         }
 
-        private void Initialize()
+        public void Initialize()
         {
             this.SetScaleType(ScaleType.Matrix);
-            m_Matrix = new Matrix();
 
             if (Drawable != null)
             {
@@ -123,32 +125,31 @@ namespace XFExtensions.Controls.Droid
 
         protected override bool SetFrame(int l, int t, int r, int b)
         {
+            // set the view size variables
             m_Width = r - l;
             m_Height = b - t;
 
-            m_Matrix.Reset();
-            var r_norm = r - l;
-            m_Scale = (float)r_norm / (float)m_IntrinsicWidth;
-
-            var paddingHeight = 0;
-            var paddingWidth = 0;
-            if (m_Scale * m_IntrinsicHeight > m_Height)
+            // make sure there is a drawable size to continue
+            if (m_IntrinsicWidth > 1 || m_IntrinsicHeight > 1)
             {
-                m_Scale = (float)m_Height / (float)m_IntrinsicHeight;
-                m_Matrix.PostScale(m_Scale, m_Scale);
-                paddingWidth = (r - m_Width) / 2;
-            }
-            else
-            {
-                m_Matrix.PostScale(m_Scale, m_Scale);
-                paddingHeight = (b - m_Height) / 2;
-            }
+                // ensure starting from a clean matrix to prevent multiple calls from throwing off the scale
+                m_Matrix.Reset();
 
-            m_Matrix.PostTranslate(paddingWidth, paddingHeight);
-            ImageMatrix = m_Matrix;
-            m_MinScale = m_Scale;
-            ZoomTo(m_Scale, m_Width / 2, m_Height / 2);
-            Cutting();
+                // calculate the scale that should be used
+                var hScale = m_Width / (float)m_IntrinsicWidth;
+                var vScale = m_Height / (float)m_IntrinsicHeight;
+                if (ZoomImage.Aspect == Xamarin.Forms.Aspect.AspectFit)
+                    m_Scale = (float)Math.Min(hScale, vScale);
+                else
+                    m_Scale = (float)Math.Max(hScale, vScale);
+
+                // set the min and max scales
+                m_MinScale = m_Scale;
+
+                // perform the zoom
+                ZoomTo(m_Scale, m_Width / 2, m_Height / 2);
+                Cutting();
+            }
             return base.SetFrame(l, t, r, b);
         }
 
@@ -157,8 +158,6 @@ namespace XFExtensions.Controls.Droid
             matrix.GetValues(m_MatrixValues);
             return m_MatrixValues[whichValue];
         }
-
-
 
         public float Scale
         {

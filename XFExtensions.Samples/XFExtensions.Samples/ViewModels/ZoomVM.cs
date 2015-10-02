@@ -40,7 +40,8 @@ namespace XFExtensions.Samples
             });
 
             // initialize the image
-            ChangeImageCommand.Execute(null);
+            //ChangeImageCommand.Execute(null);
+            Image = new UriImageSource() { Uri = new Uri(_imageUrls[0])};
         }
 
         public bool EnableZoom { get; set; }
@@ -56,10 +57,11 @@ namespace XFExtensions.Samples
         {
             get
             {
-                if (EnableZoom)
-                    return Aspect.AspectFit;
-                else
-                    return Aspect.AspectFill;
+                return Aspect.AspectFill;
+//                if (EnableZoom)
+//                    return Aspect.AspectFit;
+//                else
+//                    return Aspect.AspectFill;
             }
         }
 

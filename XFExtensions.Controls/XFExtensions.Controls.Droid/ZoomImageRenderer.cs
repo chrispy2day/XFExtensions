@@ -26,7 +26,7 @@ namespace XFExtensions.Controls.Droid
 
         protected async override void OnElementChanged(ElementChangedEventArgs<Image> e)
         {
-            //base.OnElementChanged(e);
+            base.OnElementChanged(e);
 
             if (e.NewElement != null)
             {
@@ -34,6 +34,7 @@ namespace XFExtensions.Controls.Droid
 
                 // create the scale image and set it as the native control so it's available
                 _scaleImage = new ScaleImageView(Context, null);
+                _scaleImage.ZoomImage = _zoomImage;
                 SetNativeControl(_scaleImage);
                 await LoadImage();
             }
