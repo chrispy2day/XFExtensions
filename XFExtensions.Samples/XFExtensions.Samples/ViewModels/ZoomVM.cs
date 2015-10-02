@@ -57,11 +57,10 @@ namespace XFExtensions.Samples
         {
             get
             {
-                return Aspect.AspectFill;
-//                if (EnableZoom)
-//                    return Aspect.AspectFit;
-//                else
-//                    return Aspect.AspectFill;
+                if (EnableZoom)
+                    return Aspect.AspectFit;
+                else
+                    return Aspect.AspectFill;
             }
         }
 

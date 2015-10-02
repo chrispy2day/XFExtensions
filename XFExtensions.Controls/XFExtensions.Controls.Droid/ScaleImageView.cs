@@ -43,7 +43,7 @@ namespace XFExtensions.Controls.Droid
 
         public override bool OnDoubleTap(MotionEvent e)
         {
-            m_ScaleImageView.MaxZoomTo((int)e.GetX(), (int)e.GetY());
+            m_ScaleImageView.TapZoomTo((int)e.GetX(), (int)e.GetY());
             m_ScaleImageView.Cutting();
             return true;
         }
@@ -163,17 +163,15 @@ namespace XFExtensions.Controls.Droid
             get { return this.GetValue(m_Matrix, Matrix.MtransY); }
         }
 
-        public void MaxZoomTo(int x, int y)
+        public void TapZoomTo(int x, int y)
         {
-            if (this.m_MinScale != this.Scale && (Scale - m_MinScale) > 0.1f)
+            if (ZoomImage.ZoomEnabled && ZoomImage.DoubleTapToZoomEnabled)
             {
-                var scale = m_MinScale / Scale;
-                ZoomTo(scale, x, y);
-            }
-            else
-            {
-                var scale = m_MaxScale / Scale;
-                ZoomTo(scale, x, y);
+                // if at max, zoom out
+                if ((m_MaxScale - Scale) < 0.1f)
+                    ZoomTo(1 / (float)ZoomImage.TapZoomScale, x, y);
+                else
+                    ZoomTo((float)ZoomImage.TapZoomScale, x, y);
             }
         }
 
