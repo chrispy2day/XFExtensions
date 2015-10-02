@@ -43,6 +43,11 @@ namespace XFExtensions.Controls.Droid
         protected async override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             base.OnElementPropertyChanged(sender, e);
+
+            if (e.PropertyName == ZoomImage.AspectProperty.PropertyName
+                || e.PropertyName == ZoomImage.HeightProperty.PropertyName
+                || e.PropertyName == ZoomImage.WidthProperty.PropertyName)
+                _scaleImage.ZoomToAspect();
         }
 
         private async Task LoadImage()

@@ -97,7 +97,7 @@ namespace XFExtensions.Controls.Droid
             this.Initialize();
         }
 
-        public void Initialize()
+        private void Initialize()
         {
             this.SetScaleType(ScaleType.Matrix);
 
@@ -117,11 +117,19 @@ namespace XFExtensions.Controls.Droid
             m_Width = r - l;
             m_Height = b - t;
 
-            // make sure there is a drawable size to continue
-            if (m_IntrinsicWidth > 1 || m_IntrinsicHeight > 1)
-            {
+            ZoomToAspect();
+            
+            return base.SetFrame(l, t, r, b);
+        }
+
+        public void ZoomToAspect()
+        {
+            // make sure there is a drawable size and container size to continue
+            if (m_IntrinsicWidth > 1 && m_IntrinsicHeight > 1 && m_Width > 1 && m_Height > 1)
+            { 
                 // ensure starting from a clean matrix to prevent multiple calls from throwing off the scale
                 m_Matrix.Reset();
+                this.SetScaleType(ScaleType.Matrix);
 
                 // calculate the scale that should be used
                 var hScale = m_Width / (float)m_IntrinsicWidth;
@@ -130,16 +138,13 @@ namespace XFExtensions.Controls.Droid
                     m_Scale = (float)Math.Min(hScale, vScale);
                 else
                     m_Scale = (float)Math.Max(hScale, vScale);
-
                 // set the min and max scales
                 m_MinScale = m_Scale * (float)ZoomImage.MinZoom;
                 m_MaxScale = m_Scale * (float)ZoomImage.MaxZoom;
-
                 // perform the zoom
                 ZoomTo(m_Scale, m_Width / 2, m_Height / 2);
                 Cutting();
             }
-            return base.SetFrame(l, t, r, b);
         }
 
         private float GetValue(Matrix matrix, int whichValue)
