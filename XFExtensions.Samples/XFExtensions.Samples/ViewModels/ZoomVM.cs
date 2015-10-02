@@ -40,8 +40,7 @@ namespace XFExtensions.Samples
             });
 
             // initialize the image
-            //ChangeImageCommand.Execute(null);
-            Image = new UriImageSource() { Uri = new Uri(_imageUrls[0])};
+            ChangeImageCommand.Execute(null);
         }
 
         public bool EnableZoom { get; set; }

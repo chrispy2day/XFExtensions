@@ -47,7 +47,14 @@ namespace XFExtensions.Controls.Droid
             if (e.PropertyName == ZoomImage.AspectProperty.PropertyName
                 || e.PropertyName == ZoomImage.HeightProperty.PropertyName
                 || e.PropertyName == ZoomImage.WidthProperty.PropertyName)
+            {
                 _scaleImage.ZoomToAspect();
+            }
+            else if (e.PropertyName == ZoomImage.SourceProperty.PropertyName)
+            {
+                await LoadImage();
+                _scaleImage.ZoomToAspect();
+            }
         }
 
         private async Task LoadImage()
