@@ -55,6 +55,18 @@ namespace XFExtensions.Controls.Droid
                 await LoadImage();
                 _scaleImage.ZoomToAspect();
             }
+            else if (e.PropertyName == ZoomImage.CurrentZoomProperty.PropertyName)
+            {
+                _scaleImage.ZoomFromCurrentZoom();
+            }
+            else if (e.PropertyName == ZoomImage.MaxZoomProperty.PropertyName)
+            {
+                _scaleImage.UpdateMaxScaleFromZoomImage();
+            }
+            else if (e.PropertyName == ZoomImage.MinZoomProperty.PropertyName)
+            {
+                _scaleImage.UpdateMinScaleFromZoomImage();
+            }
         }
 
         private async Task LoadImage()

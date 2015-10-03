@@ -59,6 +59,7 @@ namespace XFExtensions.Controls.Droid
         private int m_Height;
         private int m_IntrinsicWidth;
         private int m_IntrinsicHeight;
+        private float _baseScale;
         private float m_Scale;
         private float m_MinScale;
         private float m_MaxScale = 4.0f;
@@ -122,6 +123,16 @@ namespace XFExtensions.Controls.Droid
             return base.SetFrame(l, t, r, b);
         }
 
+        public void UpdateMinScaleFromZoomImage()
+        {
+            m_MinScale = (float)ZoomImage.MinZoom * _baseScale;
+        }
+
+        public void UpdateMaxScaleFromZoomImage()
+        {
+            m_MaxScale = (float)ZoomImage.MaxZoom * _baseScale;
+        }
+
         public void ZoomToAspect()
         {
             // make sure there is a drawable size and container size to continue
@@ -139,12 +150,23 @@ namespace XFExtensions.Controls.Droid
                 else
                     m_Scale = (float)Math.Max(hScale, vScale);
                 // set the min and max scales
-                m_MinScale = m_Scale * (float)ZoomImage.MinZoom;
-                m_MaxScale = m_Scale * (float)ZoomImage.MaxZoom;
+                _baseScale = m_Scale;
+                m_MinScale = _baseScale * (float)ZoomImage.MinZoom;
+                m_MaxScale = _baseScale * (float)ZoomImage.MaxZoom;
                 // perform the zoom
                 ZoomTo(m_Scale, m_Width / 2, m_Height / 2);
                 Cutting();
             }
+        }
+
+        public void ZoomFromCurrentZoom()
+        {
+            // make sure there is an actual change
+            if (Math.Abs(Scale - ZoomImage.CurrentZoom) < .1)
+                return;
+
+            var scale = (float)ZoomImage.CurrentZoom / Scale;
+            ZoomTo(scale, m_Width / 2, m_Height / 2);
         }
 
         private float GetValue(Matrix matrix, int whichValue)
@@ -201,6 +223,8 @@ namespace XFExtensions.Controls.Droid
             m_Matrix.PostTranslate(-(x - (m_Width / 2)) * scale, 0);
             m_Matrix.PostTranslate(0, -(y - (m_Height / 2)) * scale);
             ImageMatrix = m_Matrix;
+
+            ZoomImage.CurrentZoom = Scale;
         }
 
         public void Cutting()
