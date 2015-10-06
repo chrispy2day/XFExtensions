@@ -154,7 +154,7 @@ namespace XFExtensions.Controls.Droid
                 m_MinScale = _baseScale * (float)ZoomImage.MinZoom;
                 m_MaxScale = _baseScale * (float)ZoomImage.MaxZoom;
                 // perform the zoom
-                ZoomTo(m_Scale, m_Width / 2, m_Height / 2);
+                ZoomTo(m_Scale, m_IntrinsicWidth / 2, m_IntrinsicHeight / 2);
                 Cutting();
             }
         }
