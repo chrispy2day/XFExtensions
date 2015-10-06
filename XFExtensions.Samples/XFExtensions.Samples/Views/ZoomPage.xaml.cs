@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using Xamarin.Forms;
+using System.Threading.Tasks;
 
 namespace XFExtensions.Samples
 {

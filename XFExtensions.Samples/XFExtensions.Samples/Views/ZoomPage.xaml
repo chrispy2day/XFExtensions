@@ -3,13 +3,33 @@
 			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
 			 xmlns:controls="clr-namespace:XFExtensions.Controls.Abstractions;assembly=XFExtensions.Controls.Abstractions"
 			 x:Class="XFExtensions.Samples.ZoomPage">
-	<StackLayout HorizontalOptions="CenterAndExpand" 
-				 VerticalOptions="StartAndExpand">
-		 <Button Text="{Binding ToggleZoomText}" HorizontalOptions="CenterAndExpand" Command="{Binding ToggleZoomCommand}" />
-		 <controls:ZoomImage 
-		 	Source="http://yeahsoup.s3-us-west-2.amazonaws.com/wp-content/uploads/2015/05/img1114.jpg"
-	 		HorizontalOptions="CenterAndExpand" 
-	 		VerticalOptions="CenterAndExpand"
-	 		ZoomEnabled="{Binding EnableZoom}" />
-	</StackLayout>
+	<ContentPage.Padding>
+		<OnPlatform x:TypeArguments="Thickness">
+		    <OnPlatform.iOS>10, 30, 10, 5</OnPlatform.iOS>
+		    <OnPlatform.Android>10, 10, 10, 5</OnPlatform.Android>
+		    <OnPlatform.WinPhone>10, 10, 10, 5</OnPlatform.WinPhone>
+		</OnPlatform>
+	</ContentPage.Padding>
+	<ContentPage.Content>
+		<StackLayout HorizontalOptions="FillAndExpand" 
+					 VerticalOptions="FillAndExpand">
+
+			 <!-- Here's using the custom zoom image -->
+			 <Button Text="Change Image" HorizontalOptions="CenterAndExpand" Command="{Binding ChangeImageCommand}" />
+			 <Button Text="{Binding ToggleZoomText}" HorizontalOptions="CenterAndExpand" Command="{Binding ToggleZoomCommand}" />
+			 <controls:ZoomImage
+			 	Source="{Binding Image}"
+		 		HorizontalOptions="FillAndExpand" 
+		 		VerticalOptions="FillAndExpand"
+		 		ZoomEnabled="{Binding EnableZoom}"
+		 		ScrollEnabled="{Binding EnableZoom}"
+		 		Aspect="{Binding ImageAspect}" />
+
+	 		<!-- Here's using a regular Image -->
+	 		<!--<Image Source="http://yeahsoup.s3-us-west-2.amazonaws.com/wp-content/uploads/2015/05/img1114.jpg"
+	 			   HorizontalOptions="CenterAndExpand" 
+	 			   VerticalOptions="CenterAndExpand"
+	 			   Aspect="AspectFill"/>-->
+		</StackLayout>
+	</ContentPage.Content>
 </ContentPage>

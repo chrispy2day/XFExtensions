@@ -7,7 +7,7 @@ namespace XFExtensions.Samples
     {
         public App()
         {
-            MainPage = new MediaPage();
+            MainPage = new ZoomPage();
         }
 
         protected override void OnStart()
