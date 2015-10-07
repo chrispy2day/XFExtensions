@@ -43,6 +43,7 @@ namespace XFExtensions.Samples
         }
 
         public bool EnableZoom { get; set; }
+        public bool EnableScroll { get {return false; }}
         public string ToggleZoomText
         {
             get
