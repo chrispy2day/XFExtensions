@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:XFExtensions.Samples.ViewModels;assembly=XFExtensions.Samples"
+             x:Class="XFExtensions.Samples.Views.MediaPage">
+    <ContentPage.BindingContext>
+        <viewModels:MediaVM />
+    </ContentPage.BindingContext>
+    <StackLayout Orientation="Vertical"
+                 Padding="20, 10"
+                 Spacing="10">
+		<Image Source="{Binding SelectedImage}" 
+			   BackgroundColor="White" 
+			   Aspect="AspectFit" 
+			   HeightRequest="200" 
+			   WidthRequest="200" 
+			   VerticalOptions="StartAndExpand" />
+	   	<Label Text="Preview Stream Size:"/>
+		<Label Text="{Binding PreviewStreamLength}" />
+		<Label Text="Full Stream Size:"/>
+		<Label Text="{Binding FullStreamLength}" />
+        <Button Text="Choose a Photo" 
+        		Command="{Binding ChoosePhotoCommand}"
+        		VerticalOptions="End"
+        		BackgroundColor="#CCCCCC" />
+		<Button Text="Take a Photo" 
+        		Command="{Binding TakePhotoCommand}"
+        		VerticalOptions="End"
+        		BackgroundColor="#CCCCCC" />
+    </StackLayout>
+</ContentPage>
