@@ -150,9 +150,13 @@ namespace XFExtensions.Controls.iOSUnified
             // center image when filling the screen
             var widthDiff = (_imageView.Bounds.Width * _baseScalingFactor) - _scrollView.Bounds.Width;
             var heightDiff = (_imageView.Bounds.Height * _baseScalingFactor) - _scrollView.Bounds.Height;
-            // using the set so that it animates, but it always seems to be off if I don't reset the offset first
-            _scrollView.ContentOffset = new CGPoint(0, 0);
-            _scrollView.SetContentOffset(new CGPoint(Math.Max(widthDiff / 2, 0), Math.Max(heightDiff / 2, 0)), true);
+            var widthOffset = Math.Max(widthDiff / 2, 0);
+            var heightOffset = Math.Max(heightDiff / 2, 0);
+            // if offset is 0, apply it immediately - it won't change and this allows the inset to be correct
+            // logically this is == 0, but since using floats there are warnings about rounding errors
+            if (widthOffset < 0.1 && heightOffset < 0.1)
+                _scrollView.ContentOffset = new CGPoint(0, 0);
+
 
             // center the image in the scroll when image is smaller than the scroll view
             var inset = new UIEdgeInsets();
@@ -167,6 +171,10 @@ namespace XFExtensions.Controls.iOSUnified
                 _scrollView.SetZoomScale(oldScale * _baseScalingFactor, true);
             else
                 _scrollView.SetZoomScale(_baseScalingFactor, true);
+
+            // if non-zero offset, apply that animated (so it completes after the zoom)
+            if (widthOffset > 0 || heightOffset > 0)
+                _scrollView.SetContentOffset(new CGPoint(widthOffset, heightOffset), true);
         }
 
         protected override async void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)

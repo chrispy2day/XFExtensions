@@ -22,7 +22,7 @@
 		 		HorizontalOptions="FillAndExpand" 
 		 		VerticalOptions="FillAndExpand"
 		 		ZoomEnabled="{Binding EnableZoom}"
-		 		ScrollEnabled="{Binding EnableZoom}"
+		 		ScrollEnabled="{Binding EnableScroll}"
 		 		Aspect="{Binding ImageAspect}" />
 
 	 		<!-- Here's using a regular Image -->
