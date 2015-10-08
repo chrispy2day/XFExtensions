@@ -14,6 +14,7 @@ using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
 using XFExtensions.Controls.Abstractions;
 using XFExtensions.Controls.Droid;
+using System.Threading.Tasks;
 
 [assembly: ExportRenderer(typeof(GestureView), typeof(GestureViewRenderer))]
 namespace XFExtensions.Controls.Droid
@@ -31,22 +32,11 @@ namespace XFExtensions.Controls.Droid
             _detector = new GestureDetector(_listener);
         }
 
-
-        protected override void OnElementChanged(ElementChangedEventArgs<Xamarin.Forms.View> e)
+        protected override async void OnElementChanged(ElementChangedEventArgs<Xamarin.Forms.View> e)
         {
-            base.OnElementChanged(e);
+            //base.OnElementChanged(e);
 
-            if (e.NewElement == null)
-            {
-                this.GenericMotion -= HandleGenericMotion;
-                this.Touch -= HandleTouch;
-                _listener.SwipeLeft -= HandleOnSwipeLeft;
-                _listener.SwipeRight -= HandleOnSwipeRight;
-                _listener.SwipeUp -= HandleOnSwipeTop;
-                _listener.SwipeDown -= HandleOnSwipeDown;
-            }
-
-            if (e.OldElement == null)
+            if (e.NewElement != null)
             {
                 this.GenericMotion += HandleGenericMotion;
                 this.Touch += HandleTouch;
@@ -54,8 +44,51 @@ namespace XFExtensions.Controls.Droid
                 _listener.SwipeRight += HandleOnSwipeRight;
                 _listener.SwipeUp += HandleOnSwipeTop;
                 _listener.SwipeDown += HandleOnSwipeDown;
+
                 _listener.DoubleTap += HandleOnDoubleTap;
+                _listener.SingleTap += HandleOnSingleTap;
             }
+            else
+            {
+                this.GenericMotion -= HandleGenericMotion;
+                this.Touch -= HandleTouch;
+                _listener.SwipeLeft -= HandleOnSwipeLeft;
+                _listener.SwipeRight -= HandleOnSwipeRight;
+                _listener.SwipeUp -= HandleOnSwipeTop;
+                _listener.SwipeDown -= HandleOnSwipeDown;
+
+                _listener.DoubleTap -= HandleOnDoubleTap;
+                _listener.SingleTap -= HandleOnSingleTap;
+            }
+        }
+
+        public override bool OnInterceptTouchEvent(MotionEvent ev)
+        {
+            var v = GetViewWithTouchHandler(this, ev);
+            if (v == null)
+                return true;
+            return false;
+        }
+
+        private Android.Views.View GetViewWithTouchHandler(Android.Views.View view, MotionEvent ev)
+        {
+            var viewGroup = view as ViewGroup;
+            if (viewGroup != null)
+            {
+                for (var i = 0; i < viewGroup.ChildCount; i++)
+                {
+                    var c = GetViewWithTouchHandler(viewGroup.GetChildAt(i), ev);
+                    if (c != null)
+                        return c;
+                }
+            }
+            else
+            {
+                var handled = view.OnTouchEvent(ev);
+                if (handled)
+                    return view;
+            }
+            return null;
         }
 
         void HandleTouch(object sender, TouchEventArgs e)
@@ -70,32 +103,38 @@ namespace XFExtensions.Controls.Droid
 
         void HandleOnSwipeLeft(object sender, EventArgs e)
         {
-            GestureView _gi = (GestureView)this.Element;
-            _gi.OnSwipeLeft();
+            GestureView gi = (GestureView)this.Element;
+            gi.OnSwipeLeft();
         }
 
         void HandleOnSwipeRight(object sender, EventArgs e)
         {
-            GestureView _gi = (GestureView)this.Element;
-            _gi.OnSwipeRight();
+            GestureView gi = (GestureView)this.Element;
+            gi.OnSwipeRight();
         }
 
         void HandleOnSwipeTop(object sender, EventArgs e)
         {
-            GestureView _gi = (GestureView)this.Element;
-            _gi.OnSwipeUp();
+            GestureView gi = (GestureView)this.Element;
+            gi.OnSwipeUp();
         }
 
         void HandleOnSwipeDown(object sender, EventArgs e)
         {
-            GestureView _gi = (GestureView)this.Element;
-            _gi.OnSwipeDown();
+            GestureView gi = (GestureView)this.Element;
+            gi.OnSwipeDown();
         }
 
         void HandleOnDoubleTap(object sender, EventArgs e)
         {
-            GestureView _gi = (GestureView)this.Element;
-            _gi.OnDoubleTap();
+            GestureView gi = (GestureView)this.Element;
+            gi.OnDoubleTap();
+        }
+
+        void HandleOnSingleTap(object sender, EventArgs e)
+        {
+            GestureView gi = (GestureView)this.Element;
+            gi.OnSingleTap();
         }
     }
 

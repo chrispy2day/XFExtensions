@@ -29,8 +29,12 @@
                    TextColor="Black"
                    Text="{Binding GestureMessage}" />
         </AbsoluteLayout>-->
-        <StackLayout BackgroundColor="Red">
-			<Label TextColor="Black"
+        <StackLayout>
+        	<Button HorizontalOptions="Center" 
+        			Text="Click Me" 
+        			Command="{Binding ButtonClickCommand}" />
+			<Label HorizontalOptions="Center"
+				   TextColor="Black"
                    Text="{Binding GestureMessage}" />
 		 </StackLayout>
 
