@@ -16,9 +16,10 @@
                           SwipeDownCommand="{Binding SwipeDownCommand}"
                           SingleTapCommand="{Binding SingleTapCommand}"
                           DoubleTapCommand="{Binding DoubleTapCommand}"
-                          PinchCommand="{Binding PinchCommand}">
+                          PinchCommand="{Binding PinchCommand}"
+                          BackgroundColor="Silver">
         <!-- AutoLayout appears to be swallowning touch events on Android.  Works correctly on iOS.  -->
-        <AbsoluteLayout HorizontalOptions="FillAndExpand" 
+        <!--<AbsoluteLayout HorizontalOptions="FillAndExpand" 
                         VerticalOptions="FillAndExpand"
                         BackgroundColor="Silver">
             <Label AbsoluteLayout.LayoutBounds="0.5, 0.5, AutoSize, AutoSize" 
@@ -27,6 +28,11 @@
                    VerticalOptions="Center"
                    TextColor="Black"
                    Text="{Binding GestureMessage}" />
-        </AbsoluteLayout>
+        </AbsoluteLayout>-->
+        <StackLayout BackgroundColor="Red">
+			<Label TextColor="Black"
+                   Text="{Binding GestureMessage}" />
+		 </StackLayout>
+
     </controls:GestureView>
 </ContentPage>
