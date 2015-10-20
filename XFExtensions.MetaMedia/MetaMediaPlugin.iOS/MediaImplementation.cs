@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CoreLocation;
 using MobileCoreServices;
 using System.Diagnostics;
+using CoreGraphics;
 
 namespace MetaMediaPlugin
 {
@@ -79,6 +80,27 @@ namespace MetaMediaPlugin
             picker.MediaTypes = new string[] { UTType.Image };
             picker.AllowsEditing = false;
             picker.Delegate = new MediaDelegate { InfoTask = mediaInfoTask };
+
+            // setup a rotation notification
+            var rotationNotification = UIDevice.Notifications.ObserveOrientationDidChange(((sender, args) =>
+                {
+                    Debug.WriteLine("MetaMediaPlugin.iOS MediaImplementation received orientation change");
+                    switch (UIApplication.SharedApplication.StatusBarOrientation)
+                    {
+                        case UIInterfaceOrientation.LandscapeLeft:
+                            picker.CameraViewTransform = CGAffineTransform.MakeRotation((nfloat) (Math.PI / 2.0));
+                            break;
+                        case UIInterfaceOrientation.LandscapeRight:
+                            picker.CameraViewTransform = CGAffineTransform.MakeRotation((nfloat)(Math.PI / -2.0));
+                            break;
+                        case UIInterfaceOrientation.PortraitUpsideDown:
+                            picker.CameraViewTransform = CGAffineTransform.MakeRotation((nfloat)Math.PI);
+                            break;
+                        case UIInterfaceOrientation.Portrait:
+                            picker.CameraViewTransform = CGAffineTransform.MakeIdentity();
+                            break;
+                    }
+                }));
 
             // display the picker
             Debug.WriteLine("TakePhotoAsync: displaying the camera");
