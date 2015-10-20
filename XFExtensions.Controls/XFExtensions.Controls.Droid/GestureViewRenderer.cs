@@ -16,6 +16,7 @@ using XFExtensions.Controls.Abstractions;
 using XFExtensions.Controls.Droid;
 using System.Threading.Tasks;
 
+
 [assembly: ExportRenderer(typeof(GestureView), typeof(GestureViewRenderer))]
 namespace XFExtensions.Controls.Droid
 {
@@ -60,35 +61,6 @@ namespace XFExtensions.Controls.Droid
                 _listener.DoubleTap -= HandleOnDoubleTap;
                 _listener.SingleTap -= HandleOnSingleTap;
             }
-        }
-
-        public override bool OnInterceptTouchEvent(MotionEvent ev)
-        {
-            var v = GetViewWithTouchHandler(this, ev);
-            if (v == null)
-                return true;
-            return false;
-        }
-
-        private Android.Views.View GetViewWithTouchHandler(Android.Views.View view, MotionEvent ev)
-        {
-            var viewGroup = view as ViewGroup;
-            if (viewGroup != null)
-            {
-                for (var i = 0; i < viewGroup.ChildCount; i++)
-                {
-                    var c = GetViewWithTouchHandler(viewGroup.GetChildAt(i), ev);
-                    if (c != null)
-                        return c;
-                }
-            }
-            else
-            {
-                var handled = view.OnTouchEvent(ev);
-                if (handled)
-                    return view;
-            }
-            return null;
         }
 
         void HandleTouch(object sender, TouchEventArgs e)
