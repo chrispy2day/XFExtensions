@@ -12,11 +12,7 @@ namespace XFExtensions.Samples.ViewModels
     [ImplementPropertyChanged]
     public class MediaVM
     {
-        public ICommand ChoosePhotoCommand { get; private set; }
-        public ICommand TakePhotoCommand { get; private set; }
-
         private Stream _previewStream;
-        private Stream _fullStream;
 
         public MediaVM()
         {
@@ -53,7 +49,15 @@ namespace XFExtensions.Samples.ViewModels
                     }
                 },
                 o => MetaMedia.Current.IsTakePhotoSupported);
+
+            NewPicCommand = new Command((_) =>
+                {
+                });
         }
+
+        public ICommand ChoosePhotoCommand { get; private set; }
+        public ICommand TakePhotoCommand { get; private set; }
+        public ICommand NewPicCommand { get; private set; }
 
         private string CalculateLength(long length)
         {

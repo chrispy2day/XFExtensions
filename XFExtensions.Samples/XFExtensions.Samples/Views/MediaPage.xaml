@@ -2,13 +2,23 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:XFExtensions.Samples.ViewModels;assembly=XFExtensions.Samples"
+             xmlns:triggers="clr-namespace:XFExtensions.Samples.Helpers;assembly=XFExtensions.Samples"
              x:Class="XFExtensions.Samples.Views.MediaPage">
-    <ContentPage.BindingContext>
-        <viewModels:MediaVM />
-    </ContentPage.BindingContext>
     <StackLayout Orientation="Vertical"
                  Padding="20, 10"
                  Spacing="10">
+		<Button Text="+"
+				Command="{Binding NewPicCommand}"
+				BorderColor="#666666"
+				BorderRadius="2"
+				HorizontalOptions="End"
+				VerticalOptions="Start">
+			<Button.Triggers>
+				<EventTrigger Event="Clicked">
+					<triggers:ShowActionSheetAction x:Name="actionSheet" />
+				</EventTrigger>
+			</Button.Triggers>
+		</Button>
 		<Image Source="{Binding SelectedImage}" 
 			   BackgroundColor="White" 
 			   Aspect="AspectFit" 
@@ -19,13 +29,5 @@
 		<Label Text="{Binding PreviewStreamLength}" />
 		<Label Text="Full Stream Size:"/>
 		<Label Text="{Binding FullStreamLength}" />
-        <Button Text="Choose a Photo" 
-        		Command="{Binding ChoosePhotoCommand}"
-        		VerticalOptions="End"
-        		BackgroundColor="#CCCCCC" />
-		<Button Text="Take a Photo" 
-        		Command="{Binding TakePhotoCommand}"
-        		VerticalOptions="End"
-        		BackgroundColor="#CCCCCC" />
     </StackLayout>
 </ContentPage>

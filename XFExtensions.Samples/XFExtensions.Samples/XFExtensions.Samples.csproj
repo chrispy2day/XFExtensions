@@ -57,6 +57,7 @@
       <DependentUpon>ZoomPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\ZoomVM.cs" />
+    <Compile Include="Helpers\ShowActionSheetAction.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PropertyChanged">
@@ -130,4 +131,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <Folder Include="Helpers\" />
+  </ItemGroup>
 </Project>
