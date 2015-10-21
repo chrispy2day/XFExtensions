@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 VisualStudioVersion = 12.0.40629.0
@@ -533,7 +533,7 @@ Global
 		{D4D32B4C-A7C2-4503-BB27-D49FA5F4C41C} = {C4FA455E-5AB4-4C9E-8644-81AE1A273603}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		version = 1.1.0
+		version = 1.2.0
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
