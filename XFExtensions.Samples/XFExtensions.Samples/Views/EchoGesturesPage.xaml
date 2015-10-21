@@ -20,24 +20,27 @@
                           PinchCommand="{Binding PinchCommand}"
                           BackgroundColor="Silver">
         <!-- AutoLayout appears to be swallowning touch events on Android.  Works correctly on iOS.  -->
-        <!--<AbsoluteLayout HorizontalOptions="FillAndExpand" 
-                        VerticalOptions="FillAndExpand"
-                        BackgroundColor="Silver">
+        <AbsoluteLayout HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+            <Button AbsoluteLayout.LayoutBounds="0.5, 0.25, AutoSize, AutoSize" 
+               		AbsoluteLayout.LayoutFlags="PositionProportional"
+               		HorizontalOptions="Center" 
+        			Text="Click Me" 
+        			Command="{Binding ButtonClickCommand}" />
             <Label AbsoluteLayout.LayoutBounds="0.5, 0.5, AutoSize, AutoSize" 
                    AbsoluteLayout.LayoutFlags="PositionProportional"
                    HorizontalOptions="Center"
-                   VerticalOptions="Center"
                    TextColor="Black"
                    Text="{Binding GestureMessage}" />
-        </AbsoluteLayout>-->
-        <StackLayout>
+        </AbsoluteLayout>
+
+<!--        <StackLayout>
         	<Button HorizontalOptions="Center" 
         			Text="Click Me" 
         			Command="{Binding ButtonClickCommand}" />
 			<Label HorizontalOptions="Center"
 				   TextColor="Black"
                    Text="{Binding GestureMessage}" />
-		 </StackLayout>
+		 </StackLayout>-->
 
     </controls:GestureView>
 </ContentPage>
