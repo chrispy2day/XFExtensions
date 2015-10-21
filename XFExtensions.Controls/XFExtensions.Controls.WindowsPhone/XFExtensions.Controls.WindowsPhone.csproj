@@ -84,6 +84,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ControlsModule.cs" />
     <Compile Include="GestureViewRenderer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

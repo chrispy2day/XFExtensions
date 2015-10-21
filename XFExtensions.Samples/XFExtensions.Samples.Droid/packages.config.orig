@@ -1,10 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <packages>
-<<<<<<< HEAD
   <package id="Xamarin.Android.Support.v4" version="22.2.1.0" targetFramework="MonoAndroid51" />
-  <package id="Xamarin.Forms" version="1.4.4.6392" targetFramework="MonoAndroid51" />
-=======
-  <package id="Xamarin.Android.Support.v4" version="22.2.1.0" targetFramework="MonoAndroid50" />
-  <package id="Xamarin.Forms" version="1.4.4.6392" targetFramework="MonoAndroid50" />
->>>>>>> feature/MetaMediaPlugin
+  <package id="Xamarin.Forms" version="1.5.0.6447" targetFramework="MonoAndroid51" />
 </packages>
