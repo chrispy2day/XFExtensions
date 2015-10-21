@@ -17,6 +17,7 @@ SimpleList: For small lists, the UI of the built-in ListView leaves a lot to be 
 Works On: Android, iOS, WinPhone
             
 GestureView: The gesture view control allows you to receive all those great native gestures like swipes, pinches, etc.  Just add the gesture view control as the container for whatever elements should recognize the gesture.
+Note: Xamarin.Forms has had some bugs in the past with gestures being swallowed by controls and not reaching the gesture view. This depends on the version and controls that you are using, but if you experience problems, please check your Xamarin.Forms version.  The sample project on GitHub is currently using 1.5.0.6447 successfully.
 Works On: Android, iOS
 
 ZoomImage:  Pinch and zoom photos as well as double tap to zoom.  Control allows you to enable / disable scrolling, zooming, and control the scaling amounts.  As easy to use as the built-in Xamarin.Forms ImageView with even more capabilities!
