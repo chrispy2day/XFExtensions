@@ -16,6 +16,7 @@
                           SwipeDownCommand="{Binding SwipeDownCommand}"
                           SingleTapCommand="{Binding SingleTapCommand}"
                           DoubleTapCommand="{Binding DoubleTapCommand}"
+                          LongPressCommand="{Binding LongPressCommand}"
                           PinchCommand="{Binding PinchCommand}"
                           BackgroundColor="Silver">
         <!-- AutoLayout appears to be swallowning touch events on Android.  Works correctly on iOS.  -->

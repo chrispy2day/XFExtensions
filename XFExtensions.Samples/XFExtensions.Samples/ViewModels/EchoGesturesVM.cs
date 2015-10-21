@@ -23,6 +23,7 @@ namespace XFExtensions.Samples.ViewModels
             
             SingleTapCommand = new Command((_) => GestureMessage = "Single Tap Received!");
             DoubleTapCommand = new Command((_) => GestureMessage = "Double Tap Received!");
+            LongPressCommand = new Command((_) => GestureMessage = "Long Press Received!");
 
             PinchCommand = new Command((_) => GestureMessage = "Pinch Received!");
 
@@ -32,8 +33,11 @@ namespace XFExtensions.Samples.ViewModels
         public ICommand SwipeDownCommand { get; private set; }
         public ICommand SwipeLeftCommand { get; private set; }
         public ICommand SwipeRightCommand { get; private set; }
+
         public ICommand SingleTapCommand { get; private set; }
         public ICommand DoubleTapCommand { get; private set; }
+        public ICommand LongPressCommand { get; private set; }
+
         public ICommand PinchCommand { get; private set; }
 
         public ICommand ButtonClickCommand { get; private set; }

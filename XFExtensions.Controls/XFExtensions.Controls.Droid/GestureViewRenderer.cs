@@ -24,13 +24,17 @@ namespace XFExtensions.Controls.Droid
 
     public class GestureViewRenderer : ViewRenderer
     {
-        private readonly DroidGestureViewTouchListener _listener;
-        private readonly GestureDetector _detector;
+        private readonly DroidGestureViewTouchListener _gestureListener;
+        private readonly GestureDetector _gestureDetector;
+        private readonly DroidGestureViewScaleListener _scaleListener;
+        private readonly ScaleGestureDetector _scaleDetector;
 
         public GestureViewRenderer()
         {
-            _listener = new DroidGestureViewTouchListener();
-            _detector = new GestureDetector(_listener);
+            _gestureListener = new DroidGestureViewTouchListener();
+            _gestureDetector = new GestureDetector(_gestureListener);
+            _scaleListener = new DroidGestureViewScaleListener();
+            _scaleDetector = new ScaleGestureDetector(Context, _scaleListener);
         }
 
         protected override async void OnElementChanged(ElementChangedEventArgs<Xamarin.Forms.View> e)
@@ -41,36 +45,43 @@ namespace XFExtensions.Controls.Droid
             {
                 this.GenericMotion += HandleGenericMotion;
                 this.Touch += HandleTouch;
-                _listener.SwipeLeft += HandleOnSwipeLeft;
-                _listener.SwipeRight += HandleOnSwipeRight;
-                _listener.SwipeUp += HandleOnSwipeTop;
-                _listener.SwipeDown += HandleOnSwipeDown;
+                _gestureListener.SwipeLeft += HandleOnSwipeLeft;
+                _gestureListener.SwipeRight += HandleOnSwipeRight;
+                _gestureListener.SwipeUp += HandleOnSwipeTop;
+                _gestureListener.SwipeDown += HandleOnSwipeDown;
 
-                _listener.DoubleTap += HandleOnDoubleTap;
-                _listener.SingleTap += HandleOnSingleTap;
+                _gestureListener.DoubleTap += HandleOnDoubleTap;
+                _gestureListener.SingleTap += HandleOnSingleTap;
+                _gestureListener.LongPress += HandleLongPress;
+
+                _scaleListener.Pinch += HandlePinch;
             }
             else
             {
                 this.GenericMotion -= HandleGenericMotion;
                 this.Touch -= HandleTouch;
-                _listener.SwipeLeft -= HandleOnSwipeLeft;
-                _listener.SwipeRight -= HandleOnSwipeRight;
-                _listener.SwipeUp -= HandleOnSwipeTop;
-                _listener.SwipeDown -= HandleOnSwipeDown;
+                _gestureListener.SwipeLeft -= HandleOnSwipeLeft;
+                _gestureListener.SwipeRight -= HandleOnSwipeRight;
+                _gestureListener.SwipeUp -= HandleOnSwipeTop;
+                _gestureListener.SwipeDown -= HandleOnSwipeDown;
 
-                _listener.DoubleTap -= HandleOnDoubleTap;
-                _listener.SingleTap -= HandleOnSingleTap;
+                _gestureListener.DoubleTap -= HandleOnDoubleTap;
+                _gestureListener.SingleTap -= HandleOnSingleTap;
+
+                _scaleListener.Pinch -= HandlePinch;
             }
         }
 
         void HandleTouch(object sender, TouchEventArgs e)
         {
-            _detector.OnTouchEvent(e.Event);
+            _scaleDetector.OnTouchEvent(e.Event);
+            if (!_scaleDetector.IsInProgress)
+                _gestureDetector.OnTouchEvent(e.Event);
         }
 
         void HandleGenericMotion(object sender, GenericMotionEventArgs e)
         {
-            _detector.OnTouchEvent(e.Event);
+            _gestureDetector.OnTouchEvent(e.Event);
         }
 
         void HandleOnSwipeLeft(object sender, EventArgs e)
@@ -108,6 +119,25 @@ namespace XFExtensions.Controls.Droid
             GestureView gi = (GestureView)this.Element;
             gi.OnSingleTap();
         }
+
+        void HandleLongPress(object sender, EventArgs e)
+        {
+            GestureView gi = (GestureView)this.Element;
+            gi.OnLongPress();
+        }
+
+        private void HandlePinch(object sender, PinchEventArgs e)
+        {
+            GestureView gi = (GestureView)this.Element;
+            if (e.InProgress)
+                gi.CurrentPinchState = (gi.CurrentPinchState == GestureView.PinchGestureState.Started)
+                    ? GestureView.PinchGestureState.Continuing
+                    : GestureView.PinchGestureState.Started;
+            else
+                gi.CurrentPinchState = GestureView.PinchGestureState.Ended;
+            gi.PinchScale = e.ScaleFactor;
+            gi.OnPinch();
+        }
     }
 
     #endregion
@@ -126,6 +156,7 @@ namespace XFExtensions.Controls.Droid
 
         public event EventHandler SingleTap;
         public event EventHandler DoubleTap;
+        public event EventHandler LongPress;
 
         public override bool OnFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
         {
@@ -171,13 +202,40 @@ namespace XFExtensions.Controls.Droid
             return base.OnSingleTapConfirmed(e);
         }
 
-        public override bool OnSingleTapUp(MotionEvent e)
+        public override void OnLongPress(MotionEvent e)
         {
-            var handler = SingleTap;
+            var handler = this.LongPress;
             if (handler != null)
-                handler(this, new EventArgs());
-            return base.OnSingleTapUp(e);
+                handler(this, EventArgs.Empty);
         }
+    }
+
+    public class DroidGestureViewScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener
+    {
+        public event EventHandler<PinchEventArgs> Pinch;
+        public override bool OnScale(ScaleGestureDetector detector)
+        {
+            var handler = Pinch;
+            if (handler != null)
+                handler(this, new PinchEventArgs
+                    {
+                        ScaleFactor = detector.ScaleFactor, 
+                        InProgress = detector.IsInProgress,
+                        GestureTime = TimeSpan.FromMilliseconds(detector.TimeDelta)
+                    });
+            return true;
+        }
+    }
+
+    #endregion
+
+    #region Custom Event Args
+
+    public class PinchEventArgs : EventArgs
+    {
+        public float ScaleFactor { get; set; }
+        public bool InProgress { get; set; }
+        public TimeSpan GestureTime { get; set; }
     }
 
     #endregion

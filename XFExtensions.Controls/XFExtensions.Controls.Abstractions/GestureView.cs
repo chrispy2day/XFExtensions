@@ -95,6 +95,7 @@ namespace XFExtensions.Controls.Abstractions
 
         public event EventHandler SingleTap;
         public event EventHandler DoubleTap;
+        public event EventHandler LongPress;
 
         public static readonly BindableProperty SingleTapCommandProperty = BindableProperty.Create<GestureView, ICommand>(
             p => p.SingleTapCommand, default(ICommand), BindingMode.Default);
@@ -110,6 +111,14 @@ namespace XFExtensions.Controls.Abstractions
         {
             get { return (ICommand)GetValue(DoubleTapCommandProperty); }
             set { SetValue(DoubleTapCommandProperty, value); }
+        }
+
+        public static readonly BindableProperty LongPressCommandProperty = BindableProperty.Create<GestureView, ICommand>(
+            p => p.LongPressCommand, default(ICommand), BindingMode.Default);
+        public ICommand LongPressCommand
+        {
+            get { return (ICommand)GetValue(LongPressCommandProperty); }
+            set { SetValue(LongPressCommandProperty, value); }
         }
 
         public void OnSingleTap()
@@ -130,6 +139,16 @@ namespace XFExtensions.Controls.Abstractions
             EventHandler handler = DoubleTap;
             if (handler != null)
                 handler(this, new EventArgs());
+        }
+
+        public void OnLongPress()
+        {
+            if (LongPressCommand != null && LongPressCommand.CanExecute(null))
+                LongPressCommand.Execute(null);
+
+            EventHandler handler = LongPress;
+            if (handler != null)
+                handler(this, EventArgs.Empty);
         }
 
         #endregion
