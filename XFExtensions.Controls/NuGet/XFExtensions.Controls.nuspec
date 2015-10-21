@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata minClientVersion="2.8.1">
         <id>XamarinFormsExtensions.Controls</id>
-        <version>1.1.0</version>
+        <version>1.2.0</version>
         <title>Control Extensions for Xamarin.Forms</title>
         <authors>Chris Plowman</authors>
         <owners>Chris Plowman</owners>
@@ -10,17 +10,17 @@
         <projectUrl>https://github.com/JC-Chris/XFExtensions</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>
-            These custom controls make it faster and easier to create great apps using Xamarin.Forms.
-            The controls currently included are:
+These custom controls make it faster and easier to create great apps using Xamarin.Forms.
+The controls currently included are:
             
-            SimpleList: For small lists, the UI of the built-in ListView leaves a lot to be desired.  You can use a StackLayout, but then you lose the ability to have an ItemTemplate and ItemSelectedCommand.
-                        That's what SimpleList was made for - it gives you the UI control of the StackLayout with the functionality of a ListView.
-                        SimpleList is not nearly as performant as ListView, so please don't use it for large lists of data!
-            GestureView (beta): The gesture view control allows you to receive all those great native gestures like swipes, pinches, etc.  The control is currently in beta due to an issue with gestures
-                                not bubbling up properly in Android when using an absolute layout container.  A bug has been filed with Xamarin, so hopefully that will be resolved soon and I'll get this
-                                into a full release.
-            ZoomImage:  Pinch and zoom photos as well as double tap to zoom.  Control allows you to enable / disable scrolling, zooming, and control the scaling amounts.  As easy to use as the native
-                        image view with even more capabilities!
+SimpleList: For small lists, the UI of the built-in ListView leaves a lot to be desired.  You can use a StackLayout, but then you lose the ability to have an ItemTemplate and ItemSelectedCommand.  That's what SimpleList was made for - it gives you the UI control of the StackLayout with the functionality of a ListView.  SimpleList is not nearly as performant as ListView, so please don't use it for large lists of data!
+Works On: Android, iOS, WinPhone
+            
+GestureView: The gesture view control allows you to receive all those great native gestures like swipes, pinches, etc.  Just add the gesture view control as the container for whatever elements should recognize the gesture.
+Works On: Android, iOS
+
+ZoomImage:  Pinch and zoom photos as well as double tap to zoom.  Control allows you to enable / disable scrolling, zooming, and control the scaling amounts.  As easy to use as the built-in Xamarin.Forms ImageView with even more capabilities!
+Works On: Android, iOS
         </description>
         <summary>Additional controls for use in Xamarin.Forms to create professional, polished apps.</summary>
         <tags>xamarin, xamarin.forms, xam.pcl, controls, list, windows phone, winphone, wp8, android, ios</tags>
