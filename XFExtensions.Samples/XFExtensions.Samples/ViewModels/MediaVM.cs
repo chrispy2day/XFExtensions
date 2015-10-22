@@ -20,6 +20,9 @@ namespace XFExtensions.Samples.ViewModels
 
         public MediaVM()
         {
+            // set the photo directory for android
+            MetaMedia.Current.PhotosDirectory = "MetaMediaSample";
+
             FullStreamLength = PreviewStreamLength = "Unknown - no image selected yet.";
             ChoosePhotoCommand = new Command(async (_) => 
                 {

@@ -20,6 +20,7 @@ namespace MetaMediaPlugin
         internal const string ExtraMediaAction = "action";
         internal const string ExtraMediaType = "mediatype";
         internal const string ExtraRequestId = "request_id";
+        internal const string ExtraPhotosDir = "photos_subdir";
         internal const string SelectMediaAction = "select media";
         internal const string CreateMediaAction = "create media";
         internal const string PhotoMediaType = "photo";
@@ -30,6 +31,7 @@ namespace MetaMediaPlugin
         private int _requestId;
         private string _mediaAction;
         private string _mediaType;
+        private string _photoSubDir;
         private File _dir;
         private File _file;
 
@@ -43,6 +45,7 @@ namespace MetaMediaPlugin
             _requestId = bundle.GetInt(ExtraRequestId, 0);
             _mediaAction = bundle.GetString(ExtraMediaAction);
             _mediaType = bundle.GetString(ExtraMediaType);
+            _photoSubDir = bundle.GetString(ExtraPhotosDir);
 
             if (_mediaAction == SelectMediaAction && _mediaType == PhotoMediaType)
                 StartPickPhotoIntent();
@@ -274,7 +277,7 @@ namespace MetaMediaPlugin
         {
             try
             {
-                _dir = new File(Environment.GetExternalStoragePublicDirectory(Environment.DirectoryPictures), "MobilePhotoTesting");
+                _dir = new File(Environment.GetExternalStoragePublicDirectory(Environment.DirectoryPictures), _photoSubDir);
                 if (!_dir.Exists())
                     _dir.Mkdirs();
             }

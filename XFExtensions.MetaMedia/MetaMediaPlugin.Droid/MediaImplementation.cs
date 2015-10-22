@@ -50,6 +50,8 @@ namespace MetaMediaPlugin
             return await GetMediaAsync(MetaMediaActivity.PhotoMediaType, MetaMediaActivity.CreateMediaAction);
         }
 
+        public string PhotosDirectory { get; set; }
+
         #endregion
 
         #region Shared
@@ -61,6 +63,7 @@ namespace MetaMediaPlugin
             metaMediaIntent.PutExtra(MetaMediaActivity.ExtraRequestId, _requestId);
             metaMediaIntent.PutExtra(MetaMediaActivity.ExtraMediaType, mediaType);
             metaMediaIntent.PutExtra(MetaMediaActivity.ExtraMediaAction, mediaAction);
+            metaMediaIntent.PutExtra(MetaMediaActivity.ExtraPhotosDir, PhotosDirectory);
             metaMediaIntent.SetFlags(ActivityFlags.NewTask);
             return metaMediaIntent;
         }
