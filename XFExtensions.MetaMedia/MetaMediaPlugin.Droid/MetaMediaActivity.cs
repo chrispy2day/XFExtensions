@@ -26,6 +26,9 @@ namespace MetaMediaPlugin
         internal const string PhotoMediaType = "photo";
         internal const string VideoMediaType = "video";
 
+        private const string PresentedBundleKey = "chooser_shown";
+        private const string FilePathKey = "file_path";
+
         internal static event EventHandler<MediaPickedEventArgs> MediaPicked;
 
         private int _requestId;
@@ -34,6 +37,8 @@ namespace MetaMediaPlugin
         private string _photoSubDir;
         private File _dir;
         private File _file;
+
+        private bool _presented;
 
         #region Activity Methods
 
@@ -47,18 +52,29 @@ namespace MetaMediaPlugin
             _mediaType = bundle.GetString(ExtraMediaType);
             _photoSubDir = bundle.GetString(ExtraPhotosDir);
 
-            if (_mediaAction == SelectMediaAction && _mediaType == PhotoMediaType)
+            // see if already presented (in case rotation tore down this intermediate activity)
+            _presented = bundle.GetBoolean(PresentedBundleKey);
+
+            if (!_presented && _mediaAction == SelectMediaAction && _mediaType == PhotoMediaType)
                 StartPickPhotoIntent();
             else if (_mediaAction == CreateMediaAction && _mediaType == PhotoMediaType)
             {
-                CreatePhotoDir();
-                if (_dir == null)
+                if (!_presented)
                 {
-                    OnMediaPicked(new MediaPickedEventArgs(_requestId, new System.IO.IOException("Unable to create photo directory.")));
-                    Finish();
-                    return;
+                    CreatePhotoDir();
+                    if (_dir == null)
+                    {
+                        OnMediaPicked(new MediaPickedEventArgs(_requestId, new System.IO.IOException("Unable to create photo directory.")));
+                        Finish();
+                        return;
+                    }
+                    StartTakePhotoIntent();
                 }
-                StartTakePhotoIntent();
+                else
+                {
+                    var path = bundle.GetString(FilePathKey);
+                    _file = new File(path);
+                }
             }
         }
 
@@ -67,6 +83,11 @@ namespace MetaMediaPlugin
             outState.PutInt(ExtraRequestId, _requestId);
             outState.PutString(ExtraMediaAction, _mediaAction);
             outState.PutString(ExtraMediaType, _mediaType);
+            outState.PutString(ExtraPhotosDir, _photoSubDir);
+            outState.PutBoolean(PresentedBundleKey, _presented);
+
+            if (_file != null)
+                outState.PutString(FilePathKey, _file.Path);
 
             base.OnSaveInstanceState(outState);
         }
@@ -116,6 +137,7 @@ namespace MetaMediaPlugin
             imagePicker.SetAction(Intent.ActionGetContent);
             imagePicker.SetType("image/*");
             StartActivityForResult(Intent.CreateChooser(imagePicker, "Choose Image"), _requestId);
+            _presented = true;
         }
 
         private void HandlePickPhotoResults(int requestCode, Intent data)
@@ -294,6 +316,7 @@ namespace MetaMediaPlugin
             _file = new File(_dir, string.Format("im_{0}{1}{2}_{3}{4}{5}.jpg", now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second));
             intent.PutExtra(MediaStore.ExtraOutput, Uri.FromFile(_file));
             StartActivityForResult(intent, _requestId);
+            _presented = true;
         }
 
         private async Task GeoTagPhotoAsync()
