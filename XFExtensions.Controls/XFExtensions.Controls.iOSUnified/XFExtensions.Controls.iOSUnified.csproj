@@ -10,7 +10,7 @@
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
     <AssemblyName>XFExtensions.Controls.iOSUnified</AssemblyName>
     <NuGetPackageImportStamp>e2824c00</NuGetPackageImportStamp>
-    <ReleaseVersion>1.2.0</ReleaseVersion>
+    <ReleaseVersion>1.2.1</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
