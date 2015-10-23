@@ -39,6 +39,9 @@ namespace MetaMediaPlugin
             }
         }
 
+        // part of the interface, but not used in iOS
+        public string PhotosDirectory { get; set; }
+
         public async Task<IMediaFile> PickPhotoAsync()
         {
             Debug.WriteLine("PickPhotoAsync: starting");
