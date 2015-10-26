@@ -31,6 +31,12 @@
                    HorizontalOptions="Center"
                    TextColor="Black"
                    Text="{Binding GestureMessage}" />
+			<controls:GestureView AbsoluteLayout.LayoutBounds="1, 1, 1, .3"
+								  AbsoluteLayout.LayoutFlags="All"
+								  SingleTapCommand="{Binding InnerSingleTapCommand}"
+								  BackgroundColor="Gray">
+				<Label HorizontalOptions="CenterAndExpand" VerticalOptions="CenterAndExpand" Text="Inner Container" TextColor="White" />
+			</controls:GestureView>
         </AbsoluteLayout>
 
 <!--        <StackLayout>
