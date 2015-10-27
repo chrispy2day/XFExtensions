@@ -97,10 +97,6 @@
       <Project>{14C534B6-1984-41A9-A384-D3A5508588E3}</Project>
       <Name>XFExtensions.Controls.Abstractions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\XFExtensions.Controls\XFExtensions.Controls.Droid\XFExtensions.Controls.Droid.csproj">
-      <Project>{AD2D2DB4-E781-4CF1-9B62-3AAD264F196D}</Project>
-      <Name>XFExtensions.Controls.Droid</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\XFExtensions.MetaMedia\MetaMediaPlugin.Abstractions\MetaMediaPlugin.Abstractions.csproj">
       <Project>{23BB238F-CCEC-47C1-96C4-F5249DE893EA}</Project>
       <Name>MetaMediaPlugin.Abstractions</Name>
@@ -112,6 +108,10 @@
     <ProjectReference Include="..\XFExtensions.Samples\XFExtensions.Samples.csproj">
       <Name>XFExtensions.Samples</Name>
       <Project>{BB5057AE-1DCF-417F-8860-C27C028D43F6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\XFExtensions.Controls\XFExtensions.Controls.Droid\XFExtensions.Controls.Droid.csproj">
+      <Project>{AD2D2DB4-E781-4CF1-9B62-3AAD264F196D}</Project>
+      <Name>XFExtensions.Controls.Droid</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />

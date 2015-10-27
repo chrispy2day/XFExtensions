@@ -27,7 +27,6 @@ using XFExtensions.Controls.Abstractions;
 
 namespace XFExtensions.Controls.Droid
 {
-
     public class ScaleImageViewGestureDetector : GestureDetector.SimpleOnGestureListener
     {
         private readonly ScaleImageView m_ScaleImageView;
@@ -278,6 +277,10 @@ namespace XFExtensions.Controls.Droid
 
         public override bool OnTouchEvent(MotionEvent e)
         {
+            // only handle the touch if either scroll or zoom is enabled
+            if (!ZoomImage.ZoomEnabled && !ZoomImage.ScrollEnabled)
+                return false;
+            
             if (m_GestureDetector.OnTouchEvent(e))
             {
                 m_PreviousMoveX = (int)e.GetX();
@@ -286,66 +289,67 @@ namespace XFExtensions.Controls.Droid
             }
 
             var touchCount = e.PointerCount;
+            var handled = false;
             switch (e.Action)
             {
                 case MotionEventActions.Down:
                 case MotionEventActions.Pointer1Down:
                 case MotionEventActions.Pointer2Down:
+                    if (touchCount >= 2)
                     {
-                        if (touchCount >= 2)
+                        if (ZoomImage.ZoomEnabled)
                         {
-                            if (ZoomImage.ZoomEnabled)
-                            {
-                                var distance = this.Distance(e.GetX(0), e.GetX(1), e.GetY(0), e.GetY(1));
-                                m_PreviousDistance = distance;
-                                m_IsScaling = true;
-                            }
+                            var distance = this.Distance(e.GetX(0), e.GetX(1), e.GetY(0), e.GetY(1));
+                            m_PreviousDistance = distance;
+                            m_IsScaling = true;
+                            handled = true;
                         }
                     }
                     break;
 
                 case MotionEventActions.Move:
+                    if (touchCount >= 2 && m_IsScaling)
                     {
-                        if (touchCount >= 2 && m_IsScaling)
+                        if (ZoomImage.ZoomEnabled)
                         {
-                            if (ZoomImage.ZoomEnabled)
-                            {
-                                var distance = this.Distance(e.GetX(0), e.GetX(1), e.GetY(0), e.GetY(1));
-                                var scale = (distance - m_PreviousDistance) / this.DispDistance();
-                                m_PreviousDistance = distance;
-                                scale += 1;
-                                scale = scale * scale;
-                                this.ZoomTo(scale, m_Width / 2, m_Height / 2);
-                                this.Cutting();
-                            }
-                        }
-                        else if (!m_IsScaling)
-                        {
-                            if (ZoomImage.ScrollEnabled)
-                            {
-                                var distanceX = m_PreviousMoveX - (int)e.GetX();
-                                var distanceY = m_PreviousMoveY - (int)e.GetY();
-                                m_PreviousMoveX = (int)e.GetX();
-                                m_PreviousMoveY = (int)e.GetY();
+                            var distance = this.Distance(e.GetX(0), e.GetX(1), e.GetY(0), e.GetY(1));
+                            var scale = (distance - m_PreviousDistance) / this.DispDistance();
+                            m_PreviousDistance = distance;
+                            scale += 1;
+                            scale = scale * scale;
+                            this.ZoomTo(scale, m_Width / 2, m_Height / 2);
+                            this.Cutting();
 
-                                m_Matrix.PostTranslate(-distanceX, -distanceY);
-                                this.Cutting();
-                            }
+                            handled = true;
+                        }
+                    }
+                    else if (!m_IsScaling)
+                    {
+                        if (ZoomImage.ScrollEnabled)
+                        {
+                            var distanceX = m_PreviousMoveX - (int)e.GetX();
+                            var distanceY = m_PreviousMoveY - (int)e.GetY();
+                            m_PreviousMoveX = (int)e.GetX();
+                            m_PreviousMoveY = (int)e.GetY();
+
+                            m_Matrix.PostTranslate(-distanceX, -distanceY);
+                            this.Cutting();
+
+                            handled = true;
                         }
                     }
                     break;
                 case MotionEventActions.Up:
                 case MotionEventActions.Pointer1Up:
                 case MotionEventActions.Pointer2Up:
+                    if (touchCount <= 1)
                     {
-                        if (touchCount <= 1)
-                        {
-                            m_IsScaling = false;
-                        }
+                        m_IsScaling = false;
+                        handled = true;
                     }
                     break;
             }
-            return true;
+            return handled;
         }
 
         public bool OnTouch(View v, MotionEvent e)

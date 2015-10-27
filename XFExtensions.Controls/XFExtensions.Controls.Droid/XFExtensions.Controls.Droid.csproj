@@ -68,6 +68,7 @@
     <Compile Include="ZoomImageRenderer.cs" />
     <Compile Include="ControlsModule.cs" />
     <Compile Include="ScaleImageView.cs" />
+    <Compile Include="GestureViewRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
