@@ -267,12 +267,12 @@ namespace XFExtensions.Controls.Droid
         {
             var x = x0 - x1;
             var y = y0 - y1;
-            return FloatMath.Sqrt(x * x + y * y);
+            return (float)Math.Sqrt(x * x + y * y);
         }
 
         private float DispDistance()
         {
-            return FloatMath.Sqrt(m_Width * m_Width + m_Height * m_Height);
+            return (float)Math.Sqrt(m_Width * m_Width + m_Height * m_Height);
         }
 
         public override bool OnTouchEvent(MotionEvent e)
