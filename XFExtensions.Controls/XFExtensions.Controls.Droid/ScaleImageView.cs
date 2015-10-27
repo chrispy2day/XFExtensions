@@ -1,4 +1,11 @@
 ﻿/*
+ * This file is a modified version of the ScaleImageView from the MonoDroidToolkit found here:
+ * https://github.com/jamesmontemagno/MonoDroidToolkit
+ * 
+ * Original copyright is still included below.
+ */
+
+/*
  * Copyright (C) 2013 @JamesMontemagno http://www.montemagno.com http://www.refractored.com
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
