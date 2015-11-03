@@ -50,6 +50,8 @@ namespace XFExtensions.Controls.iOSUnified
                     }) 
                     { NumberOfTapsRequired = 2 }
                 );
+                _scrollView.PinchGestureRecognizer.Enabled = _zoomImage.ZoomEnabled;
+
                 this.SetNativeControl(_scrollView);
             }
             SetNeedsDisplay();
@@ -175,6 +177,9 @@ namespace XFExtensions.Controls.iOSUnified
             // if non-zero offset, apply that animated (so it completes after the zoom)
             if (widthOffset > 0 || heightOffset > 0)
                 _scrollView.SetContentOffset(new CGPoint(widthOffset, heightOffset), true);
+
+            // updating the zoom scale resets the pinch gesture recognizer, so set it back to the current zoom enabled state
+            _scrollView.PinchGestureRecognizer.Enabled = _zoomImage.ZoomEnabled;
         }
 
         protected override async void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)

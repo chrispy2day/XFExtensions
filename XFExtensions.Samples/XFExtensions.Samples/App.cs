@@ -7,7 +7,7 @@ namespace XFExtensions.Samples
     {
         public App()
         {
-            MainPage = new EchoGesturesPage();
+            MainPage = new ZoomPage();
         }
 
         protected override void OnStart()
