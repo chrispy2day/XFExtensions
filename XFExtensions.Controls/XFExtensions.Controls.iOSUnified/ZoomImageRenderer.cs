@@ -190,43 +190,37 @@ namespace XFExtensions.Controls.iOSUnified
             {
                 SetZoomToAspect();
             }
-
-            if (e.PropertyName == ZoomImage.CurrentZoomProperty.PropertyName)
+            else if (e.PropertyName == ZoomImage.CurrentZoomProperty.PropertyName)
             {
                 var scale = (nfloat)_zoomImage.Scale * _baseScalingFactor;
                 _scrollView.SetZoomScale(scale, true);
             }
-
-            if (e.PropertyName == ZoomImage.HeightProperty.PropertyName 
+            else if (e.PropertyName == ZoomImage.HeightProperty.PropertyName 
                 || e.PropertyName == ZoomImage.WidthProperty.PropertyName)
             {
                 await Task.Delay(50); // give a short delay for changes to be applied to the frame
                 SetZoomToAspect(true); // reapply the current scale
                 SetNeedsDisplay();
             }
-
-            if (e.PropertyName == ZoomImage.MaxZoomProperty.PropertyName)
+            else if (e.PropertyName == ZoomImage.MaxZoomProperty.PropertyName)
             {
                 _scrollView.MaximumZoomScale = (nfloat)_zoomImage.MaxZoom * _baseScalingFactor;
             }
-            if (e.PropertyName == ZoomImage.MinZoomProperty.PropertyName)
+            else if (e.PropertyName == ZoomImage.MinZoomProperty.PropertyName)
             {
                 _scrollView.MaximumZoomScale = (nfloat)_zoomImage.MinZoom * _baseScalingFactor;
             }
-
-            if (e.PropertyName == ZoomImage.ScrollEnabledProperty.PropertyName)
+            else if (e.PropertyName == ZoomImage.ScrollEnabledProperty.PropertyName)
             {
                 _scrollView.ScrollEnabled = _zoomImage.ScrollEnabled;
             }
-
-            if (e.PropertyName == ZoomImage.SourceProperty.PropertyName)
+            else if (e.PropertyName == ZoomImage.SourceProperty.PropertyName)
             {
                 AssignImage();
                 SetZoomToAspect();
                 SetNeedsDisplay();
             }
-
-            if (e.PropertyName == ZoomImage.ZoomEnabledProperty.PropertyName)
+            else if (e.PropertyName == ZoomImage.ZoomEnabledProperty.PropertyName)
             {
                 _scrollView.PinchGestureRecognizer.Enabled = _zoomImage.ZoomEnabled;
                 // if zoom is disabled, return to aspect view
