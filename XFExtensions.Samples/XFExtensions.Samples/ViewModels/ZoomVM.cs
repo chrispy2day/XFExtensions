@@ -38,6 +38,9 @@ namespace XFExtensions.Samples
                 Image = new UriImageSource() { Uri = new Uri(_imageUrls[index])};
             });
 
+            // enable zoom should initially be false
+            EnableZoom = false;
+
             // initialize the image
             ChangeImageCommand.Execute(null);
         }

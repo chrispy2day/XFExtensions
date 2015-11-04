@@ -5,7 +5,7 @@ namespace XFExtensions.Controls.Abstractions
     public class ZoomImage : Image
     {
         public static readonly BindableProperty ZoomEnabledProperty =
-            BindableProperty.Create<ZoomImage, bool>(p => p.ZoomEnabled, false, BindingMode.Default);
+            BindableProperty.Create<ZoomImage, bool>(p => p.ZoomEnabled, true, BindingMode.Default);
 
         public bool ZoomEnabled
         {
@@ -14,7 +14,7 @@ namespace XFExtensions.Controls.Abstractions
         }
 
         public static readonly BindableProperty ScrollEnabledProperty =
-            BindableProperty.Create<ZoomImage, bool>(p => p.ScrollEnabled, false, BindingMode.Default);
+            BindableProperty.Create<ZoomImage, bool>(p => p.ScrollEnabled, true, BindingMode.Default);
 
         public bool ScrollEnabled
         {
