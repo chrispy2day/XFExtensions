@@ -16,7 +16,7 @@
     <TargetFrameworkProfile>Profile78</TargetFrameworkProfile>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <NuGetPackageImportStamp>e3b98fdb</NuGetPackageImportStamp>
-    <ReleaseVersion>1.2.3</ReleaseVersion>
+    <ReleaseVersion>1.2.4</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
