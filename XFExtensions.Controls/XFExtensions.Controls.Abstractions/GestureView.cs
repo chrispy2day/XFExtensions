@@ -189,8 +189,8 @@ namespace XFExtensions.Controls.Abstractions
                 PinchCommand.Execute(null);
 
             EventHandler handler = Pinched;
-            if (Pinched != null)
-                Pinched(this, new EventArgs());
+            if (handler != null)
+                handler(this, new EventArgs());
         }
 
         #endregion

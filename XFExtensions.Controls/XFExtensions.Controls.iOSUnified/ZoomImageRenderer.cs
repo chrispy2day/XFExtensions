@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Foundation;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 [assembly: ExportRenderer(typeof(ZoomImage), typeof(ZoomImageRenderer))]
 namespace XFExtensions.Controls.iOSUnified
@@ -37,14 +38,7 @@ namespace XFExtensions.Controls.iOSUnified
                     ScrollEnabled = _zoomImage.ScrollEnabled
                 };
                 // add the image view to it
-                try
-                {
                 await AssignImageAsync();
-                }
-                catch (Exception err)
-                {
-                    var msg = err.Message;
-                }
                 _scrollView.AddSubview(_imageView);
                 // setup the zooming and double tap
                 _scrollView.ViewForZoomingInScrollView += (view) => _imageView;
@@ -113,7 +107,11 @@ namespace XFExtensions.Controls.iOSUnified
             }
             else
             {
-                throw new InvalidOperationException("Unable to create image, unknown image source type.");
+                Debug.WriteLine("ZoomImageRenderer: Unable to load image, creating empty image view.");
+                if (_imageView == null)
+                    _imageView = new UIImageView();
+                else
+                    _imageView.Image = null;
             }
 
             _imageView.SizeToFit();
