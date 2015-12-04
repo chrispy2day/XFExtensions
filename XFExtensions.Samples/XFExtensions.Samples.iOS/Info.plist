@@ -25,7 +25,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>XFExtensions.Samples</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.yourcompany.XFExtensions.Samples</string>
+	<string>com.im.XFExtensions.Samples</string>
 	<key>CFBundleIconFiles</key>
 	<array>
 		<string>Icon-60@2x</string>

@@ -15,6 +15,7 @@ using System.Diagnostics;
 [assembly: ExportRenderer(typeof(ZoomImage), typeof(ZoomImageRenderer))]
 namespace XFExtensions.Controls.iOSUnified
 {
+    [Preserve(AllMembers = true)]
     public class ZoomImageRenderer : ViewRenderer<ZoomImage, UIScrollView>
     {
         private ZoomImage _zoomImage;
