@@ -25,6 +25,7 @@
 		 		DoubleTapToZoomEnabled="{Binding EnableZoom}"
 		 		ScrollEnabled="{Binding EnableScroll}"
 		 		Aspect="{Binding ImageAspect}" />
+		 	<Label Text="{Binding ImageComesFrom}" HorizontalOptions="CenterAndExpand" />
 
 	 		<!-- Here's using a regular Image -->
 	 		<!--<Image Source="http://yeahsoup.s3-us-west-2.amazonaws.com/wp-content/uploads/2015/05/img1114.jpg"

@@ -24,7 +24,11 @@ namespace XFExtensions.Samples.ViewModels
             SingleTapCommand = new Command((_) => GestureMessage = "Single Tap Received!");
             DoubleTapCommand = new Command((_) => GestureMessage = "Double Tap Received!");
             LongPressCommand = new Command((_) => GestureMessage = "Long Press Received!");
-            InnerSingleTapCommand = new Command((_) => GestureMessage = "Inner Single Tap Received!");
+            InnerSingleTapCommand = new Command((_) => 
+                {
+                    GestureMessage = "Inner Single Tap Received!";
+                    InnerTapTime = DateTime.Now.ToString("hh:mm:ss tt");
+                });
 
             PinchCommand = new Command((_) => GestureMessage = "Pinch Received!");
 
@@ -45,5 +49,7 @@ namespace XFExtensions.Samples.ViewModels
         public ICommand ButtonClickCommand { get; private set; }
 
         public string GestureMessage { get; set; }
+
+        public string InnerTapTime { get; set; }
     }
 }

@@ -6,12 +6,16 @@ using Xamarin.Forms.Platform.iOS;
 using UIKit;
 using CoreGraphics;
 using System.ComponentModel;
+using System.Threading;
 using System.Threading.Tasks;
 using Foundation;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 [assembly: ExportRenderer(typeof(ZoomImage), typeof(ZoomImageRenderer))]
 namespace XFExtensions.Controls.iOSUnified
 {
+    [Preserve(AllMembers = true)]
     public class ZoomImageRenderer : ViewRenderer<ZoomImage, UIScrollView>
     {
         private ZoomImage _zoomImage;
@@ -19,7 +23,7 @@ namespace XFExtensions.Controls.iOSUnified
         private UIImageView _imageView;
         private nfloat _baseScalingFactor;
 
-        protected override void OnElementChanged(ElementChangedEventArgs<ZoomImage> e)
+        protected override async void OnElementChanged(ElementChangedEventArgs<ZoomImage> e)
         {
             if (this.Control == null && e.NewElement != null)
             {
@@ -35,7 +39,7 @@ namespace XFExtensions.Controls.iOSUnified
                     ScrollEnabled = _zoomImage.ScrollEnabled
                 };
                 // add the image view to it
-                AssignImage();
+                await AssignImageAsync();
                 _scrollView.AddSubview(_imageView);
                 // setup the zooming and double tap
                 _scrollView.ViewForZoomingInScrollView += (view) => _imageView;
@@ -58,13 +62,14 @@ namespace XFExtensions.Controls.iOSUnified
             base.OnElementChanged(e);
         }
 
-        private void AssignImage()
+        private async Task AssignImageAsync()
         {
             // reset the scroll or the size and offsets will all be off for the new image (do this before updating the image)
             ResetScrollView();
 
             var webSource = _zoomImage.Source as UriImageSource;
             var fileSource = _zoomImage.Source as FileImageSource;
+            var streamSource = _zoomImage.Source as StreamImageSource;
             if (webSource != null)
             {
                 var url = webSource.Uri.ToString();
@@ -88,10 +93,28 @@ namespace XFExtensions.Controls.iOSUnified
                         _imageView.Image = image;
                 }
             }
+            else if (streamSource != null)
+            {
+                var cts = new CancellationTokenSource();
+                using (var stream = await streamSource.Stream(cts.Token))
+                using (var data = NSData.FromStream(stream))
+                using (var image = UIImage.LoadFromData(data))
+                {
+                    if (_imageView == null)
+                        _imageView = new UIImageView(image);
+                    else
+                        _imageView.Image = image;
+                }
+            }
             else
             {
-                throw new InvalidOperationException("Unable to create image, unknown image source type.");
+                Debug.WriteLine("ZoomImageRenderer: Unable to load image, creating empty image view.");
+                if (_imageView == null)
+                    _imageView = new UIImageView();
+                else
+                    _imageView.Image = null;
             }
+
             _imageView.SizeToFit();
             _scrollView.ContentSize = _imageView.Frame.Size;
         }
@@ -216,7 +239,7 @@ namespace XFExtensions.Controls.iOSUnified
             }
             else if (e.PropertyName == ZoomImage.SourceProperty.PropertyName)
             {
-                AssignImage();
+                await AssignImageAsync();
                 SetZoomToAspect();
                 SetNeedsDisplay();
             }

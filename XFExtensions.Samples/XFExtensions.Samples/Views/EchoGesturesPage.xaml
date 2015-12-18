@@ -35,7 +35,13 @@
 								  AbsoluteLayout.LayoutFlags="All"
 								  SingleTapCommand="{Binding InnerSingleTapCommand}"
 								  BackgroundColor="Gray">
-				<Label HorizontalOptions="CenterAndExpand" VerticalOptions="CenterAndExpand" Text="Inner Container" TextColor="White" />
+				<StackLayout HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+					<Label HorizontalOptions="CenterAndExpand" VerticalOptions="CenterAndExpand" Text="Inner Container" TextColor="White" />
+					<StackLayout Orientation="Horizontal" HorizontalOptions="StartAndExpand" VerticalOptions="End">
+						<Label HorizontalOptions="Start" Text="Last Tapped" />
+						<Label HorizontalOptions="End" Text="{Binding InnerTapTime}" />
+					</StackLayout>
+				</StackLayout>
 			</controls:GestureView>
         </AbsoluteLayout>
 
