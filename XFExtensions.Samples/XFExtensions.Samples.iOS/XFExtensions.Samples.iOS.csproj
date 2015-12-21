@@ -10,7 +10,7 @@
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
     <AssemblyName>XFExtensionsSamplesiOS</AssemblyName>
     <NuGetPackageImportStamp>adc76e26</NuGetPackageImportStamp>
-    <ReleaseVersion>1.2.4</ReleaseVersion>
+    <ReleaseVersion>1.2.5</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' ">
     <DebugSymbols>true</DebugSymbols>
