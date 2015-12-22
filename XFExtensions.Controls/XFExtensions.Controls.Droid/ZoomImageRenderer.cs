@@ -77,8 +77,16 @@ namespace XFExtensions.Controls.Droid
 //                image = await (new StreamImagesourceHandler()).LoadImageAsync(_zoomImage.Source, Context);
 //            if (image == null)
 //                image = await (new FileImageSourceHandler()).LoadImageAsync(_zoomImage.Source, Context);
-            if (image != null && image.ByteCount > 0)
-                _scaleImage.SetImageBitmap(image);
+            try
+            {
+                if (image != null && image.ByteCount > 0)
+                    _scaleImage.SetImageBitmap(image);
+            }
+            catch (Exception e)
+            {
+                // catch an image loading failure
+                Console.WriteLine($"Unable to load bitmap. Exception: {e.Message}");
+            }
         }
     }
 }
