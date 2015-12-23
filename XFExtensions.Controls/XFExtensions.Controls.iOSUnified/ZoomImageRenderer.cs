@@ -72,38 +72,62 @@ namespace XFExtensions.Controls.iOSUnified
             var streamSource = _zoomImage.Source as StreamImageSource;
             if (webSource != null)
             {
-                var url = webSource.Uri.ToString();
-                using (var data = NSData.FromUrl(NSUrl.FromString(url)))
-                using (var image = UIImage.LoadFromData(data))
+                try
                 {
-                    if (_imageView == null)
-                        _imageView = new UIImageView(image);
-                    else
-                        _imageView.Image = image;
+                    var url = webSource.Uri.ToString();
+                    using (var data = NSData.FromUrl(NSUrl.FromString(url)))
+                    using (var image = UIImage.LoadFromData(data))
+                    {
+                        if (_imageView == null)
+                            _imageView = new UIImageView(image);
+                        else
+                            _imageView.Image = image;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error loading image from {webSource.Uri.ToString()}. Exception: {e.Message}");
+                    _imageView = new UIImageView();
                 }
             }
             else if (fileSource != null)
             {
-                // use a file source
-                using (var image = UIImage.FromFile(fileSource.File))
+                try
                 {
-                    if (_imageView == null)
-                        _imageView = new UIImageView(image);
-                    else
-                        _imageView.Image = image;
+                    // use a file source
+                    using (var image = UIImage.FromFile(fileSource.File))
+                    {
+                        if (_imageView == null)
+                            _imageView = new UIImageView(image);
+                        else
+                            _imageView.Image = image;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error loading image from file {fileSource.File}. Exception: {e.Message}");
+                    _imageView = new UIImageView();
                 }
             }
             else if (streamSource != null)
             {
-                var cts = new CancellationTokenSource();
-                using (var stream = await streamSource.Stream(cts.Token))
-                using (var data = NSData.FromStream(stream))
-                using (var image = UIImage.LoadFromData(data))
+                try
                 {
-                    if (_imageView == null)
-                        _imageView = new UIImageView(image);
-                    else
-                        _imageView.Image = image;
+                    var cts = new CancellationTokenSource();
+                    using (var stream = await streamSource.Stream(cts.Token))
+                    using (var data = NSData.FromStream(stream))
+                    using (var image = UIImage.LoadFromData(data))
+                    {
+                        if (_imageView == null)
+                            _imageView = new UIImageView(image);
+                        else
+                            _imageView.Image = image;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error loading image from stream. Exception: {e.Message}");
+                    _imageView = new UIImageView();
                 }
             }
             else
