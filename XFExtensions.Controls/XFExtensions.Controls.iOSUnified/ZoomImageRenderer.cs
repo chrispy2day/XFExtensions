@@ -72,38 +72,62 @@ namespace XFExtensions.Controls.iOSUnified
             var streamSource = _zoomImage.Source as StreamImageSource;
             if (webSource != null)
             {
-                var url = webSource.Uri.ToString();
-                using (var data = NSData.FromUrl(NSUrl.FromString(url)))
-                using (var image = UIImage.LoadFromData(data))
+                try
                 {
-                    if (_imageView == null)
-                        _imageView = new UIImageView(image);
-                    else
-                        _imageView.Image = image;
+                    var url = webSource.Uri.ToString();
+                    using (var data = NSData.FromUrl(NSUrl.FromString(url)))
+                    using (var image = UIImage.LoadFromData(data))
+                    {
+                        if (_imageView == null)
+                            _imageView = new UIImageView(image);
+                        else
+                            _imageView.Image = image;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error loading image from {webSource.Uri.ToString()}. Exception: {e.Message}");
+                    _imageView = new UIImageView();
                 }
             }
             else if (fileSource != null)
             {
-                // use a file source
-                using (var image = UIImage.FromFile(fileSource.File))
+                try
                 {
-                    if (_imageView == null)
-                        _imageView = new UIImageView(image);
-                    else
-                        _imageView.Image = image;
+                    // use a file source
+                    using (var image = UIImage.FromFile(fileSource.File))
+                    {
+                        if (_imageView == null)
+                            _imageView = new UIImageView(image);
+                        else
+                            _imageView.Image = image;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error loading image from file {fileSource.File}. Exception: {e.Message}");
+                    _imageView = new UIImageView();
                 }
             }
             else if (streamSource != null)
             {
-                var cts = new CancellationTokenSource();
-                using (var stream = await streamSource.Stream(cts.Token))
-                using (var data = NSData.FromStream(stream))
-                using (var image = UIImage.LoadFromData(data))
+                try
                 {
-                    if (_imageView == null)
-                        _imageView = new UIImageView(image);
-                    else
-                        _imageView.Image = image;
+                    var cts = new CancellationTokenSource();
+                    using (var stream = await streamSource.Stream(cts.Token))
+                    using (var data = NSData.FromStream(stream))
+                    using (var image = UIImage.LoadFromData(data))
+                    {
+                        if (_imageView == null)
+                            _imageView = new UIImageView(image);
+                        else
+                            _imageView.Image = image;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error loading image from stream. Exception: {e.Message}");
+                    _imageView = new UIImageView();
                 }
             }
             else
@@ -207,48 +231,57 @@ namespace XFExtensions.Controls.iOSUnified
 
         protected override async void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            base.OnElementPropertyChanged(sender, e);
+            try
+            {
+                base.OnElementPropertyChanged(sender, e);
 
-            if (e.PropertyName == ZoomImage.AspectProperty.PropertyName)
-            {
-                SetZoomToAspect();
-            }
-            else if (e.PropertyName == ZoomImage.CurrentZoomProperty.PropertyName)
-            {
-                var scale = (nfloat)_zoomImage.Scale * _baseScalingFactor;
-                _scrollView.SetZoomScale(scale, true);
-            }
-            else if (e.PropertyName == ZoomImage.HeightProperty.PropertyName 
-                || e.PropertyName == ZoomImage.WidthProperty.PropertyName)
-            {
-                await Task.Delay(50); // give a short delay for changes to be applied to the frame
-                SetZoomToAspect(true); // reapply the current scale
-                SetNeedsDisplay();
-            }
-            else if (e.PropertyName == ZoomImage.MaxZoomProperty.PropertyName)
-            {
-                _scrollView.MaximumZoomScale = (nfloat)_zoomImage.MaxZoom * _baseScalingFactor;
-            }
-            else if (e.PropertyName == ZoomImage.MinZoomProperty.PropertyName)
-            {
-                _scrollView.MaximumZoomScale = (nfloat)_zoomImage.MinZoom * _baseScalingFactor;
-            }
-            else if (e.PropertyName == ZoomImage.ScrollEnabledProperty.PropertyName)
-            {
-                _scrollView.ScrollEnabled = _zoomImage.ScrollEnabled;
-            }
-            else if (e.PropertyName == ZoomImage.SourceProperty.PropertyName)
-            {
-                await AssignImageAsync();
-                SetZoomToAspect();
-                SetNeedsDisplay();
-            }
-            else if (e.PropertyName == ZoomImage.ZoomEnabledProperty.PropertyName)
-            {
-                _scrollView.PinchGestureRecognizer.Enabled = _zoomImage.ZoomEnabled;
-                // if zoom is disabled, return to aspect view
-                if (!_zoomImage.ZoomEnabled)
+                if (e.PropertyName == ZoomImage.AspectProperty.PropertyName)
+                {
                     SetZoomToAspect();
+                }
+                else if (e.PropertyName == ZoomImage.CurrentZoomProperty.PropertyName)
+                {
+                    var scale = (nfloat)_zoomImage.Scale * _baseScalingFactor;
+                    _scrollView.SetZoomScale(scale, true);
+                }
+                else if (e.PropertyName == ZoomImage.HeightProperty.PropertyName 
+                    || e.PropertyName == ZoomImage.WidthProperty.PropertyName)
+                {
+                    await Task.Delay(50); // give a short delay for changes to be applied to the frame
+                    SetZoomToAspect(true); // reapply the current scale
+                    SetNeedsDisplay();
+                }
+                else if (e.PropertyName == ZoomImage.MaxZoomProperty.PropertyName)
+                {
+                    _scrollView.MaximumZoomScale = (nfloat)_zoomImage.MaxZoom * _baseScalingFactor;
+                }
+                else if (e.PropertyName == ZoomImage.MinZoomProperty.PropertyName)
+                {
+                    _scrollView.MaximumZoomScale = (nfloat)_zoomImage.MinZoom * _baseScalingFactor;
+                }
+                else if (e.PropertyName == ZoomImage.ScrollEnabledProperty.PropertyName)
+                {
+                    _scrollView.ScrollEnabled = _zoomImage.ScrollEnabled;
+                }
+                else if (e.PropertyName == ZoomImage.SourceProperty.PropertyName)
+                {
+                    await AssignImageAsync();
+                    SetZoomToAspect();
+                    SetNeedsDisplay();
+                }
+                else if (e.PropertyName == ZoomImage.ZoomEnabledProperty.PropertyName)
+                {
+                    _scrollView.PinchGestureRecognizer.Enabled = _zoomImage.ZoomEnabled;
+                    // if zoom is disabled, return to aspect view
+                    if (!_zoomImage.ZoomEnabled)
+                        SetZoomToAspect();
+                }
+            }
+            catch (Exception ex)
+            {
+                // nothing we can really do here, but will catch it because it can be difficult
+                // with bindings for the caller to catch
+                Debug.WriteLine($"ZoomImageRenderer: Error: {ex.Message}\nStack: {ex.StackTrace}");
             }
         }
 
