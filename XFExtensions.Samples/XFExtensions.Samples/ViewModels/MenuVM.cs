@@ -9,11 +9,11 @@ namespace XFExtensions.Samples.ViewModels
 {
     public class MenuVM
     {
-        private List<MenuGroup> _menus;
+        public List<MenuGroup> Menus;
         public MenuVM()
         {
             // create the menu
-            _menus = new List<MenuGroup>
+            Menus = new List<MenuGroup>
             {
                 new MenuGroup
                 {

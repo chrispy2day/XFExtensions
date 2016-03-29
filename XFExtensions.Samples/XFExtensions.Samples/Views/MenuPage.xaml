@@ -4,11 +4,16 @@
              xmlns:controls="clr-namespace:XFExtensions.Controls.Abstractions;assembly=XFExtensions.Controls.Abstractions"
              x:Class="XFExtensions.Samples.Views.MenuPage"
              Title="Menu">
-    <controls:SimpleList>
-        <controls:SimpleList.ItemTemplate>
-            <DataTemplate>
-                <Label Text="{Binding GroupName}"/>
-            </DataTemplate>
-        </controls:SimpleList.ItemTemplate>
-    </controls:SimpleList>
+	<StackLayout Padding="0,20,0,0">
+		<Label HorizontalOptions="CenterAndExpand">Menu</Label>
+	    <controls:SimpleList ItemsSource="{Binding Menus}" 
+	    					 HorizontalOptions="StartAndExpand" 
+	    					 VerticalOptions="StartAndExpand">
+	        <controls:SimpleList.ItemTemplate>
+	            <DataTemplate>
+	                <Label Text="{Binding GroupName}"/>
+	            </DataTemplate>
+	        </controls:SimpleList.ItemTemplate>
+	    </controls:SimpleList>
+    </StackLayout>
 </ContentPage>

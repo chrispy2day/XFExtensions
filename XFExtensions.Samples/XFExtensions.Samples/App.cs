@@ -7,7 +7,7 @@ namespace XFExtensions.Samples
     {
         public App()
         {
-            MainPage = new ZoomPage();
+            MainPage = new CodedListPage();
         }
 
         protected override void OnStart()
