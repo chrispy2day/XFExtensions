@@ -26,9 +26,8 @@ namespace XFExtensions.Samples.Droid
 		
 		public static void UpdateIdValues()
 		{
-			global::Xamarin.Forms.Platform.Resource.String.ApplicationName = global::XFExtensions.Samples.Droid.Resource.String.ApplicationName;
-			global::Xamarin.Forms.Platform.Resource.String.Hello = global::XFExtensions.Samples.Droid.Resource.String.Hello;
 			global::ModernHttpClient.Resource.String.library_name = global::XFExtensions.Samples.Droid.Resource.String.library_name;
+			global::Xamarin.Forms.Platform.Android.Resource.Attribute.actionBarSize = global::XFExtensions.Samples.Droid.Resource.Attribute.actionBarSize;
 		}
 		
 		public partial class Attribute
@@ -63,14 +62,14 @@ namespace XFExtensions.Samples.Droid
 		public partial class String
 		{
 			
-			// aapt resource value: 0x7f030002
-			public const int ApplicationName = 2130903042;
-			
 			// aapt resource value: 0x7f030001
-			public const int Hello = 2130903041;
+			public const int ApplicationName = 2130903041;
 			
 			// aapt resource value: 0x7f030000
-			public const int library_name = 2130903040;
+			public const int Hello = 2130903040;
+			
+			// aapt resource value: 0x7f030002
+			public const int library_name = 2130903042;
 			
 			static String()
 			{
