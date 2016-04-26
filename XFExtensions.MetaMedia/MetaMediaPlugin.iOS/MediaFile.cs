@@ -179,7 +179,6 @@ namespace MetaMediaPlugin
         {
             Debug.WriteLine("MediaFile: GetAssetStream entered with path = {0}", (object)path);
 
-            var streamCompletion = new TaskCompletionSource<Stream>();
             using (var rep = await GetAssetDefaultRepAsync(path))
             {
                 // now some really ugly code to copy that as a byte array
@@ -199,7 +198,6 @@ namespace MetaMediaPlugin
         {
             Debug.WriteLine("MediaFile: GetFileNameAssetAsync entered with path = {0}", (object)path);
 
-            string name;
             using (var rep = await GetAssetDefaultRepAsync(path))
             {
                 return rep.Filename;
