@@ -17,7 +17,7 @@ namespace XFExtensions.Samples
             var list = new SimpleList
             {
                 HorizontalOptions = LayoutOptions.FillAndExpand, 
-                VerticalOptions = LayoutOptions.FillAndExpand, 
+                VerticalOptions = LayoutOptions.StartAndExpand, 
                 Orientation = StackOrientation.Vertical
             };
 
@@ -29,10 +29,9 @@ namespace XFExtensions.Samples
             // create the ability to add a new item
             var newItem = new Entry
             {
-                HorizontalOptions = LayoutOptions.FillAndExpand,
-                Placeholder = "New Item"
+                HorizontalOptions = LayoutOptions.FillAndExpand
             };
-            newItem.SetBinding<SimpleListVM>(Entry.TextProperty, m => m.Entry, BindingMode.TwoWay);
+            newItem.SetBinding<SimpleListVM>(Entry.TextProperty, m => m.EnteredText, BindingMode.TwoWay);
 
             var addBtn = new Button 
             { 
@@ -40,12 +39,12 @@ namespace XFExtensions.Samples
                 HorizontalOptions = LayoutOptions.End
             };
             addBtn.SetBinding<SimpleListVM>(Button.CommandProperty, m => m.AddOrUpdateItemCommand);
-            addBtn.Triggers.Add(new DataTrigger(typ
 
             // create a stack to hold everything
             Content = new StackLayout
             {
-                VerticalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Start,
+                Padding = new Thickness(10, 30, 10, 5),
                 Children = 
                 {
                     new ScrollView // Scroll the entire contents
@@ -56,13 +55,19 @@ namespace XFExtensions.Samples
                         new StackLayout // vertical stack of children
                         {
                             HorizontalOptions = LayoutOptions.FillAndExpand,
-                            VerticalOptions = LayoutOptions.FillAndExpand,
+                            VerticalOptions = LayoutOptions.StartAndExpand,
                             Children =
                             {
                                 new Label   // Title
                                 { 
-                                    Text = "Auto-Binding",  
+                                    Text = "Simple Coded List",
+                                    TextColor = Color.Purple,
                                     HorizontalOptions = LayoutOptions.CenterAndExpand
+                                },
+                                new Label // Description
+                                { 
+                                    Text = "Basic sample using auto-text binding and item selection against an ObservableCollection.",
+                                    TextColor = Color.Silver
                                 },
                                 new StackLayout // Add item area container
                                 {

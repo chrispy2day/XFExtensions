@@ -9,23 +9,16 @@ namespace XFExtensions.Samples.ViewModels
 {
     public class MenuVM
     {
-        public List<MenuGroup> Menus;
+        public List<MenuItem> Menu { get; private set; }
+        
         public MenuVM()
         {
             // create the menu
-            Menus = new List<MenuGroup>
+            Menu = new List<MenuItem>
             {
-                new MenuGroup
-                {
-                    GroupName = "SimpleList",
-                    MenuItems = new List<MenuItem>
-                    {
-                        new MenuItem
-                        {
-                            Name = "Auto Binding"
-                        }
-                    }
-                }
+                new MenuItem { Category = "SimpleList", Name = "Simple Coded List" },
+                new MenuItem { Category = "SimpleList", Name = "Simple XAML List" },
+                new MenuItem { Category = "SimpleList", Name = "Templated List" },
             };
         }
     }

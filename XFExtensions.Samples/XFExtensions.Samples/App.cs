@@ -7,7 +7,11 @@ namespace XFExtensions.Samples
     {
         public App()
         {
-            MainPage = new CodedListPage();
+            MainPage = new MasterDetailPage
+            {
+                Master = new MenuPage(),
+                Detail = new CodedListPage()
+            };
         }
 
         protected override void OnStart()

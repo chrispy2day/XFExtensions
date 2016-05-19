@@ -8,7 +8,7 @@ namespace XFExtensions.Samples.Models
 {
     public class MenuItem
     {
-        public Type ReferenceItemType { get; set; }
+        public string Category { get; set; }
         public string Name { get; set; }
     }
 }

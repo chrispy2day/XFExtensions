@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows.Input;
 using Xamarin.Forms;
@@ -14,32 +16,38 @@ namespace XFExtensions.Controls.Abstractions
             ItemHeightRequest = 22;
         }
 
-        public static readonly BindableProperty ItemsSourceProperty = BindableProperty.Create<SimpleList, IEnumerable>(
-            p => p.ItemsSource,
-            default(IEnumerable),
-            BindingMode.TwoWay,
+        public static readonly BindableProperty ItemsSourceProperty = BindableProperty.Create (
+            nameof (ItemsSource), 
+            typeof (IEnumerable), 
+            typeof (SimpleList), 
+            null, 
+            BindingMode.OneWay,
             propertyChanged: ItemsSourceChanged);
 
         public IEnumerable ItemsSource 
         {
             get { return (IEnumerable) GetValue(ItemsSourceProperty); }
-            set { SetValue(ItemsSourceProperty, value); } 
+            set { 
+                SetValue(ItemsSourceProperty, value); 
+            } 
         }
 
-        private static void ItemsSourceChanged(BindableObject bindable, IEnumerable oldvalue, IEnumerable newvalue)
+        private static void ItemsSourceChanged (BindableObject bindable, object oldValue, object newValue)
         {
             var list = (SimpleList) bindable;
-            list.Repopulate();
+            list.RepopulateList();
 
             var colChange = list.ItemsSource as INotifyCollectionChanged;
             if (colChange != null)
                 colChange.CollectionChanged += list.colChange_CollectionChanged;
         }
 
-        public static readonly BindableProperty ItemTemplateProperty = BindableProperty.Create<SimpleList, DataTemplate>(
-            p => p.ItemTemplate,
-            default(DataTemplate),
-            BindingMode.Default,
+        public static readonly BindableProperty ItemTemplateProperty = BindableProperty.Create (
+            nameof (ItemTemplate), 
+            typeof (DataTemplate), 
+            typeof (SimpleList), 
+            null, 
+            BindingMode.OneWay, 
             propertyChanged: ItemTemplateChanged);
 
         public DataTemplate ItemTemplate
@@ -48,22 +56,24 @@ namespace XFExtensions.Controls.Abstractions
             set { SetValue(ItemTemplateProperty, value); }
         }
 
-        private static void ItemTemplateChanged(BindableObject bindable, DataTemplate oldvalue, DataTemplate newvalue)
+        private static void ItemTemplateChanged(BindableObject bindable, object oldvalue, object newvalue)
         {
             var list = (SimpleList)bindable;
-            list.Repopulate();
+            list.RepopulateList();
         }
+        
+        public static readonly BindableProperty ItemSelectedCommandProperty =
+            BindableProperty.Create (
+                nameof (ItemSelectedCommand),
+                typeof (ICommand),
+                typeof (SimpleList),
+                null,
+                BindingMode.OneWay);
 
-        public static readonly BindableProperty ItemSelectedCommandProperty = BindableProperty
-            .Create<SimpleList, ICommand>(
-                p => p.ItemSelectedCommand,
-                default(ICommand),
-                BindingMode.Default);
-
-        public ICommand ItemSelectedCommand
+        public ICommand ItemSelectedCommand 
         {
-            get { return (ICommand) GetValue(ItemSelectedCommandProperty); }
-            set {  SetValue(ItemSelectedCommandProperty, value); }
+            get { return (ICommand)GetValue (ItemSelectedCommandProperty); }
+            set { SetValue (ItemSelectedCommandProperty, value); }
         }
 
         public string DisplayMember { get; set; }
@@ -72,7 +82,9 @@ namespace XFExtensions.Controls.Abstractions
 
         public int ItemHeightRequest { get; set; }
 
-        private void Repopulate()
+        private ICommand _selectedCommand;
+
+        private void RepopulateList()
         {
             Children.Clear();
             if (ItemsSource == null)
@@ -80,43 +92,65 @@ namespace XFExtensions.Controls.Abstractions
             
             // build our own internal command so that we can respond to selected events
             // correctly even if the command was set after the items were rendered
-            var selectedCommand = new Command<object>(o =>
-            {
-                if (ItemSelectedCommand != null && ItemSelectedCommand.CanExecute(o))
-                    ItemSelectedCommand.Execute(o);
-            });
+            if (_selectedCommand == null)
+                _selectedCommand = new Command<object>(o =>
+                {
+                    if (ItemSelectedCommand != null && ItemSelectedCommand.CanExecute(o))
+                        ItemSelectedCommand.Execute(o);
+                });
 
-            View child;
             foreach (var item in ItemsSource)
             {
-                if (ItemTemplate != null)
-                {
-                    child = ItemTemplate.CreateContent() as View;
-                    if (child == null)
-                        continue;
-                    child.BindingContext = item;
-                }
-                else if (!string.IsNullOrEmpty(DisplayMember))
-                {
-                    child = new Label { BindingContext = item, TextColor = TextColor, HeightRequest = ItemHeightRequest };
-                    child.SetBinding(Label.TextProperty, DisplayMember);
-                }
-                else
-                {
-                    child = new Label { Text = item.ToString(), TextColor = TextColor, HeightRequest = ItemHeightRequest };
-                }
-                
-                // add an internal tapped handler
-                var itemTapped = new TapGestureRecognizer {Command = selectedCommand, CommandParameter = item};
-                child.GestureRecognizers.Add(itemTapped);
-
+                var child = PopulateChild (item);
                 Children.Add(child);
             }
         }
 
-        void colChange_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void colChange_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            Repopulate();
+            if (e.OldItems != null)
+                this.Children.RemoveAt(e.OldStartingIndex);
+
+            if (e.NewItems != null)
+            {
+                foreach (var item in e.NewItems)
+                {
+                    var view = PopulateChild (item);
+                    this.Children.Insert(e.NewStartingIndex, view);
+                }
+            }
+
+            if (e.OldItems != null || e.NewItems != null)
+            {
+                this.UpdateChildrenLayout();
+                this.InvalidateLayout();
+            }
+        }
+
+        private View PopulateChild (object item)
+        {
+            View child;
+            if (ItemTemplate != null)
+            {
+                child = ItemTemplate.CreateContent() as View;
+                if (child == null)
+                    return null;
+                child.BindingContext = item;
+            }
+            else if (!string.IsNullOrEmpty(DisplayMember))
+            {
+                child = new Label { BindingContext = item, TextColor = TextColor, HeightRequest = ItemHeightRequest };
+                child.SetBinding(Label.TextProperty, DisplayMember);
+            }
+            else
+            {
+                child = new Label { Text = item.ToString(), TextColor = TextColor, HeightRequest = ItemHeightRequest };
+            }
+            
+            // add an internal tapped handler
+            var itemTapped = new TapGestureRecognizer {Command = _selectedCommand, CommandParameter = item};
+            child.GestureRecognizers.Add(itemTapped);
+            return child;
         }
     }
 }
