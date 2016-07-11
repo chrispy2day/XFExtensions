@@ -9,6 +9,8 @@ namespace XFExtensions.Samples
     {
         public CodedListPage()
         {
+            Title = "Coded List";
+            
             // create the VM and assign the page binding
             var vm = new SimpleListVM();
             this.BindingContext = vm;
@@ -18,7 +20,8 @@ namespace XFExtensions.Samples
             {
                 HorizontalOptions = LayoutOptions.FillAndExpand, 
                 VerticalOptions = LayoutOptions.StartAndExpand, 
-                Orientation = StackOrientation.Vertical
+                Orientation = StackOrientation.Vertical,
+                AutomationId = "list"
             };
 
             // bind the list to the simple list of strings in the VM
@@ -29,14 +32,16 @@ namespace XFExtensions.Samples
             // create the ability to add a new item
             var newItem = new Entry
             {
-                HorizontalOptions = LayoutOptions.FillAndExpand
+                HorizontalOptions = LayoutOptions.FillAndExpand,
+                AutomationId = "input"
             };
             newItem.SetBinding<SimpleListVM>(Entry.TextProperty, m => m.EnteredText, BindingMode.TwoWay);
 
             var addBtn = new Button 
             { 
                 Text = "  Add  ", // spaces for padding
-                HorizontalOptions = LayoutOptions.End
+                HorizontalOptions = LayoutOptions.End,
+                AutomationId = "button"
             };
             addBtn.SetBinding<SimpleListVM>(Button.CommandProperty, m => m.AddOrUpdateItemCommand);
 

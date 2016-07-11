@@ -4,6 +4,7 @@ using System.Linq;
 
 using Foundation;
 using UIKit;
+using Xamarin.Forms;
 
 namespace XFExtensions.Samples.iOS
 {
@@ -22,7 +23,21 @@ namespace XFExtensions.Samples.iOS
         //
         public override bool FinishedLaunching(UIApplication app, NSDictionary options)
         {
-            global::Xamarin.Forms.Forms.Init();
+            #if ENABLE_TEST_CLOUD
+            // requires Xamarin Test Cloud Agent
+            Xamarin.Calabash.Start();
+            #endif
+            
+            Forms.Init();
+            
+            // Test Cloud / UITest Setup
+            Forms.ViewInitialized += (object sender, ViewInitializedEventArgs e) => {
+                // http://developer.xamarin.com/recipes/testcloud/set-accessibilityidentifier-ios/
+                if (null != e.View.AutomationId) {
+                    e.NativeView.AccessibilityIdentifier = e.View.AutomationId;
+                }
+            };
+
             LoadApplication(new App());
 
             return base.FinishedLaunching(app, options);

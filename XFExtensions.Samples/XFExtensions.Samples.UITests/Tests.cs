@@ -5,7 +5,7 @@ using NUnit.Framework;
 using Xamarin.UITest;
 using Xamarin.UITest.Queries;
 
-namespace XFExtensions.Controls.UITests
+namespace XFExtensions.Samples.UITests
 {
     [TestFixture (Platform.Android)]
     [TestFixture (Platform.iOS)]
@@ -28,7 +28,8 @@ namespace XFExtensions.Controls.UITests
         [Test]
         public void AppLaunches ()
         {
-            app.Screenshot ("First screen.");
+            //app.Screenshot ("First screen.");
+            app.Repl ();
         }
     }
 }

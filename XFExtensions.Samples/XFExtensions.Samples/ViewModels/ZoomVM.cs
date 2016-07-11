@@ -1,17 +1,24 @@
 ﻿using System;
 using System.Windows.Input;
 using Xamarin.Forms;
-using PropertyChanged;
 using System.Collections.Generic;
 using ModernHttpClient;
-using System.Net;
 using System.Net.Http;
+using System.ComponentModel;
 
 namespace XFExtensions.Samples
 {
-    [ImplementPropertyChanged]
-    public class ZoomVM
+    public class ZoomVM : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void TriggerPropertyChanged (string propertyName)
+        {
+            var propertyChanged = PropertyChanged;
+            if (propertyChanged != null)
+                propertyChanged (this, new PropertyChangedEventArgs (propertyName));
+        }
+        
         private List<ImageResource> _imageUrls;
         private Random _indexGenerator;
 
@@ -27,15 +34,15 @@ namespace XFExtensions.Samples
             _indexGenerator = new Random();
             _imageUrls = new List<ImageResource>
             {
-                new ImageResource{ ImageFrom = ImageOrigin.Uri, ImageSourceText = "http://yeahsoup.s3-us-west-2.amazonaws.com/wp-content/uploads/2015/05/img1114.jpg"},
-                new ImageResource{ ImageFrom = ImageOrigin.Stream, ImageSourceText = "http://i.telegraph.co.uk/multimedia/archive/02262/A124CE_2262003b.jpg"},
-                new ImageResource{ ImageFrom = ImageOrigin.Uri, ImageSourceText = "http://i.telegraph.co.uk/multimedia/archive/01476/chimp_1476818c.jpg"},
-                new ImageResource{ ImageFrom = ImageOrigin.Stream, ImageSourceText = "http://i.huffpost.com/gen/1490756/images/o-CHIMPANZEE-facebook.jpg"},
-                new ImageResource{ ImageFrom = ImageOrigin.Uri, ImageSourceText = "http://static1.squarespace.com/static/523b539be4b0a75330f9c8ce/55a55614e4b01d30adbfe144/55a557ace4b0632463d49108/1436909257139/babyowl.jpg?format=1000w"},
-                new ImageResource{ ImageFrom = ImageOrigin.Uri, ImageSourceText = "http://www.rantlifestyle.com/wp-content/uploads/2014/06/schattigebabydier11.jpg"},
-                new ImageResource{ ImageFrom = ImageOrigin.Stream, ImageSourceText = "http://ww2.valdosta.edu/~kaletour/bb1.jpg"},
-                new ImageResource{ ImageFrom = ImageOrigin.Uri, ImageSourceText = "https://36.media.tumblr.com/5c493da746cc1c1f438ae304591244c4/tumblr_n9a78n99Ea1tvs3v3o1_500.jpg"},
-                new ImageResource{ ImageFrom = ImageOrigin.Uri, ImageSourceText = "http://streetloop.com/wp-content/uploads/2014/07/Baby-animals-looking-like-their-parents25.jpg"}
+                new ImageResource{ ImageFrom = ImageOrigin.Uri, ImageSourceText = "http://static.boredpanda.com/blog/wp-content/uuuploads/cute-baby-animals/cute-baby-animals-10.jpg"},
+                new ImageResource{ ImageFrom = ImageOrigin.Stream, ImageSourceText = "http://static.boredpanda.com/blog/wp-content/uuuploads/cute-baby-animals/cute-baby-animals-13.jpg"},
+                new ImageResource{ ImageFrom = ImageOrigin.Uri, ImageSourceText = "http://yesserver.space.swri.edu/yes2013/personal/emilyklotzbach/tiger.jpg"},
+                new ImageResource{ ImageFrom = ImageOrigin.Stream, ImageSourceText = "http://img.brainjet.com/slides/2/8/7/0/1/2/2870120722/afcb62c33c69ff2449a72be7d44919911df1432b.jpeg"},
+                new ImageResource{ ImageFrom = ImageOrigin.Uri, ImageSourceText = "http://amazinganimalstories.com/wp-content/uploads/2013/10/cute-baby-animal-pictures-002-015.jpg"},
+                new ImageResource{ ImageFrom = ImageOrigin.Uri, ImageSourceText = "http://65.media.tumblr.com/f2caa3272b7015889d6e9e88b6448b84/tumblr_o3zws59Nd31qi4ucgo1_540.jpg"},
+                new ImageResource{ ImageFrom = ImageOrigin.Stream, ImageSourceText = "http://amazinganimalstories.com/wp-content/uploads/2013/10/cute-baby-animal-pictures-002-018.jpg"},
+                new ImageResource{ ImageFrom = ImageOrigin.Uri, ImageSourceText = "http://static.boredpanda.com/blog/wp-content/uploads/2014/12/cutest-baby-animals-3__605.jpg"},
+                new ImageResource{ ImageFrom = ImageOrigin.Uri, ImageSourceText = "http://www.stylemotivation.com/wp-content/uploads/2013/07/cute-baby-animals-3.jpg"}
             };
             
             ToggleZoomCommand = new Command((_) => 
@@ -67,8 +74,23 @@ namespace XFExtensions.Samples
             ChangeImageCommand.Execute(null);
         }
 
-        public bool EnableZoom { get; set; }
-        public bool EnableScroll { get {return EnableZoom; }}
+        private bool _enableZoom;
+        public bool EnableZoom
+        {
+            get { return _enableZoom; }
+            set 
+            {
+                if (value == _enableZoom)
+                    return;
+                _enableZoom = value;
+                TriggerPropertyChanged (nameof (EnableZoom));
+                TriggerPropertyChanged (nameof (EnableScroll));
+                TriggerPropertyChanged (nameof (ToggleZoomText));
+            }
+        }
+            
+        public bool EnableScroll { get {return _enableZoom; }}
+        
         public string ToggleZoomText
         {
             get
@@ -88,9 +110,29 @@ namespace XFExtensions.Samples
             }
         }
 
-        public ImageSource Image { get; set; }
+        private ImageSource _image;
+        public ImageSource Image 
+        { 
+            get { return _image; }
+            set
+            {
+                _image = value;
+                TriggerPropertyChanged (nameof (Image));
+            }
+        }
 
-        public string ImageComesFrom { get; set; }
+        private string _imageComesFrom;
+        public string ImageComesFrom
+        {
+            get { return _imageComesFrom; }
+            set
+            {
+                if (value == _imageComesFrom)
+                    return;
+                _imageComesFrom = value;
+                TriggerPropertyChanged (nameof (ImageComesFrom));
+            }
+        }
 
         public ICommand ToggleZoomCommand { get; private set; }
         public ICommand ChangeImageCommand { get; private set; }

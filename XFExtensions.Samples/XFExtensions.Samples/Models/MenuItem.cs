@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace XFExtensions.Samples.Models
 {
-    public class MenuItem
+    public class SamplesMenuItem
     {
-        public string Category { get; set; }
         public string Name { get; set; }
+        public string Description { get; set; }
+        public Type TypeOfView { get; set; }
     }
 }

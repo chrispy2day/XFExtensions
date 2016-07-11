@@ -1,3 +1,4 @@
+using System;
 using Xamarin.Forms;
 using XFExtensions.Samples.Views;
 
@@ -9,8 +10,8 @@ namespace XFExtensions.Samples
         {
             MainPage = new MasterDetailPage
             {
-                Master = new MenuPage(),
-                Detail = new CodedListPage()
+                Master = new MenuPage (),
+                Detail = new NavigationPage(new CodedListPage())
             };
         }
 

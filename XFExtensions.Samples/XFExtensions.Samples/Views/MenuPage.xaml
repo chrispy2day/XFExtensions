@@ -1,20 +1,32 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8"?>
+
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:controls="clr-namespace:XFExtensions.Controls.Abstractions;assembly=XFExtensions.Controls.Abstractions"
              x:Class="XFExtensions.Samples.Views.MenuPage"
-             Title="Menu">
-	<StackLayout Padding="10,40,10,10">
-		<Label HorizontalOptions="FillAndExpand" 
-			   BackgroundColor="Purple" 
-			   TextColor="White"
-			   HeightRequest="30"
-			   HorizontalTextAlignment="Center"
-			   VerticalTextAlignment="Center">Menu</Label>
-	    <controls:SimpleList ItemsSource="{Binding Menu}"
-	    					 DisplayMember="Name"
-	    					 HorizontalOptions="FillAndExpand" 
-	    					 VerticalOptions="FillAndExpand">
-	    </controls:SimpleList>
+             Title="Menu"
+			 Icon="MenuIcon.png">
+    <StackLayout Padding="10,40,10,10">
+        <Label HorizontalOptions="FillAndExpand"
+               BackgroundColor="Purple"
+               TextColor="White"
+               HeightRequest="30"
+               HorizontalTextAlignment="Center"
+               VerticalTextAlignment="Center">
+            Menu
+        </Label>
+        <ListView x:Name="pageList"
+				  ItemsSource="{Binding Menu}"
+                  GroupDisplayBinding="{Binding GroupName}"
+                  IsGroupingEnabled="true" 
+				  HasUnevenRows="true">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextCell Text="{Binding Name}"
+                              Detail="{Binding Description}"
+                              TextColor="Purple"
+                              DetailColor="Silver" />
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
     </StackLayout>
 </ContentPage>
